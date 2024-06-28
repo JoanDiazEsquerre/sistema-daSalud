@@ -1,0 +1,106 @@
+   <ui:composition xmlns="http://www.w3.org/1999/xhtml"
+    xmlns:ui="http://java.sun.com/jsf/facelets"
+    xmlns:h="http://java.sun.com/jsf/html"
+    xmlns:p="http://primefaces.org/ui"
+    xmlns:pe="http://primefaces.org/ui/extensions"
+    locale="#{localeBean.usedLocale}"
+    xmlns:f="http://java.sun.com/jsf/core">
+    
+
+
+    <h:form id="form">
+    	<h2 style="color: #007d4c;">REPORTES > REPORTE DE PRODUCTOS</h2>
+     
+			<p:selectOneButton value="#{reporteProductoBean.estadoFilter}" unselectable="false">
+	            <f:selectItem itemLabel="Activos" itemValue="#{true}" />
+	            <f:selectItem itemLabel="Inactivos" itemValue="#{false}" />
+	            <p:ajax update=":form:idTable" />
+	        </p:selectOneButton>
+	        
+        	<p:commandButton value="Descargar" ajax="false" onclick="PrimeFaces.monitorDownload(start, stop); PF('blockUIWidgetGeneral').block();" actionListener="#{reporteProductoBean.procesarExcel}" oncomplete="PF('blockUIWidgetGeneral').unblock();" icon="pi pi-file-excel" styleClass="mr-2">
+	           <p:fileDownload value="#{reporteProductoBean.fileDes}"/> 
+	      	</p:commandButton>
+	
+	       <p:dataTable reflow="true" var="prod" id="idTable" value="#{reporteProductoBean.lstProductoLazy}" widgetVar="usersTable" rowIndexVar="row" paginator="true" rows="15" size="small"
+	            emptyMessage="No se encontraron resultados" style="width: 120%" paginatorPosition="bottom" rowKey="#{prod.id}" selection="#{reporteProductoBean.productoSelected}" selectionMode="single">
+	            <f:facet name="header">
+	                <div class="p-d-flex p-ai-center p-jc-between">
+<!-- 	                    <p:commandButton value="Producto" actionListener="#{productoBean.agregarProducto}" update="dialogProyecto" oncomplete="PF('productoDialog').show();" icon="pi pi-plus-circle" style="margin: 5px"/> -->
+<!-- 	                    <p:commandButton value="Familia" update="dialogFamilia" oncomplete="PF('familiaDialog').show();" icon="pi pi-plus-circle" style="margin: 5px"/> -->
+<!-- 	                    <p:commandButton value="Princ. Activo" update="dialogPrincipioActivo" oncomplete="PF('principioActivoDialog').show();" icon="pi pi-plus-circle" style="margin: 5px"/> -->
+<!-- 	                    <p:commandButton value="Dolencia" update="dialogDolencia" oncomplete="PF('dolenciaDialog').show();" icon="pi pi-plus-circle" style="margin: 5px"/> -->
+	                </div>
+	            </f:facet>
+<!-- 	            <p:ajax event="rowSelect" update="dialogProyecto" listener="#{productoBean.modificarProducto}" oncomplete="PF('productoDialog').show();" /> -->
+	
+	           <p:column style="width:42px;text-align: left">
+	                <f:facet name="header">
+	                
+	                </f:facet>
+	            </p:column>
+	
+	           	<p:column width="25px">
+	                      #{row +1}
+	        	</p:column>
+	
+	           <p:column headerText="Descripcion" sortBy="#{prod.descripcion}" filterBy="#{prod.descripcion}" filterMatchMode="contains">
+	                <h:outputText value="#{prod.descripcion}" />
+	           </p:column>
+	           
+	           <p:column headerText="Descripcion Ticket" sortBy="#{prod.descripcionTicket}" filterMatchMode="contains">
+	                <h:outputText value="#{prod.descripcionTicket}" />
+	           </p:column>
+	           
+	           <p:column headerText="Familia" sortBy="#{prod.familia.descripcion}" filterBy="#{prod.familia.descripcion}" filterMatchMode="contains">
+	                <h:outputText value="#{prod.familia.descripcion}" />
+	           </p:column>
+	           
+	           <p:column headerText="Laboratorio" sortBy="#{prod.laboratorio.nombre}" filterBy="#{prod.laboratorio.nombre}" filterMatchMode="contains">
+	                <h:outputText value="#{prod.laboratorio.nombre}" />
+	           </p:column>
+	           
+	           <p:column headerText="Código Barra" sortBy="#{prod.codigoBarra}" filterBy="#{prod.codigoBarra}" filterMatchMode="contains">
+	                <h:outputText value="#{prod.codigoBarra}" />
+	           </p:column>
+	           
+	           <p:column headerText="Garantía" filterMatchMode="contains">
+	                <h:outputText value="#{prod.garantia ?'SI': 'NO'}" />
+	           </p:column>
+	           
+	           <p:column headerText="Stock Minimo" sortBy="#{prod.stockMinimo}" filterMatchMode="contains">
+	                <h:outputText value="#{prod.stockMinimo}" />
+	           </p:column>
+	           
+	           <p:column headerText="Stock Actual(Unid.)" sortBy="#{prod.stockUnidad}" style="color: blue" filterMatchMode="contains">
+	                <h:outputText value="#{prod.stockUnidad}" />
+	           </p:column>
+	           
+	           <p:column headerText="Principio Activo" sortBy="#{prod.principioActivo.nombre}" filterBy="#{prod.principioActivo.nombre}" filterMatchMode="contains">
+	                <h:outputText value="#{prod.principioActivo.nombre}" />
+	           </p:column>
+	           
+	           <p:column headerText="Dolencia" sortBy="#{prod.dolencia.nombre}" filterBy="#{prod.dolencia.nombre}" filterMatchMode="contains">
+	                <h:outputText value="#{prod.dolencia.nombre}" />
+	           </p:column>
+	           
+	           <p:column headerText="Receta Medica" sortBy="#{prod.recetaMedica}" filterMatchMode="contains">
+	                <h:outputText value="#{prod.recetaMedica ?'SI': 'NO'}" />
+	           </p:column>
+	           
+	           <p:column headerText="Tipo Operación" sortBy="#{prod.tipoOperacion}" filterMatchMode="contains">
+	                <h:outputText value="#{prod.tipoOperacion}" />
+	           </p:column>
+	           
+	     
+	        </p:dataTable>
+	
+    </h:form>
+    
+    <pe:blockUI widgetVar="blockUIWidgetGeneral">
+          <h:form style="background: white"> 
+          <h:outputText value="Cargando, espere..." style="white-space: nowrap; font-weight:bold; color: #036fab; background: white"/> 
+          </h:form>
+    </pe:blockUI>
+    
+   
+</ui:composition>

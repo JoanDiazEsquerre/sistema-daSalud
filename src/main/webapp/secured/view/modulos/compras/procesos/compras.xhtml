@@ -1,0 +1,610 @@
+<ui:composition xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:ui="http://java.sun.com/jsf/facelets"
+	xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:p="http://primefaces.org/ui"
+	xmlns:pe="http://primefaces.org/ui/extensions"
+	locale="#{localeBean.usedLocale}"
+	xmlns:f="http://java.sun.com/jsf/core">
+
+
+	<h:form id="form">
+		<h2 style="color: #007d4c;">COMPRAS > DOCUMENTOS DE COMPRAS</h2>    
+		<p:tabView id="tabView">
+			<p:tab title="Lista de documentos de compras">
+			
+				<h:panelGrid columns="5" id="gridOpc" > 
+					<p:selectOneButton value="#{compraBean.estado}" unselectable="false">
+						<f:selectItem itemLabel="Activos" itemValue="#{true}" />
+						<f:selectItem itemLabel="Inactivos" itemValue="#{false}" />
+						<p:ajax update=":form:tabView:idTableCompra"  />
+					</p:selectOneButton> 
+				</h:panelGrid> 
+			
+				<p:dataTable var="compra" id="idTableCompra" value="#{compraBean.lstDocumentoCompraLazy}" widgetVar="compraTable" rowIndexVar="row" paginator="true" rows="15" size="small" style="width:auto"
+					emptyMessage="No se encontraron compras." paginatorPosition="bottom" rowKey="#{compra.id}" selection="#{compraBean.documentoCompraSelected}" selectionMode="single"
+					lazy="true">
+					<f:facet name="header">
+						<div class="p-d-flex p-ai-center p-jc-between">
+							<span>Lista de Documentos Compras</span>
+						</div>
+					</f:facet>
+						<p:ajax event="rowSelect" listener="#{compraBean.listarDetalleDocumentoCompra()}"  onstart="PF('blockUIWidgetGeneral').block();" oncomplete="PF('blockUIWidgetGeneral').unblock(); PF('docVentDialog').show();" />
+		
+					<p:column width="25px">
+		                      #{row +1}
+		        	</p:column>
+		        	
+					<p:column headerText="Tipo Comprobante" filterMatchMode="contains" style="margin:5px; width:150px">
+						<f:facet name="header">
+							Documento
+				        	<p:selectOneMenu value="#{compraBean.tipoDocumentoFilter}" converter="#{compraBean.conversorTipoDocumento}" style="margin:5px;width:100%" >
+								<f:selectItem itemLabel="TODOS" value="#{null}"/>
+								<f:selectItems value="#{compraBean.lstTipoDocumento}" var="tipoDocumento" itemLabel="#{tipoDocumento.descripcion}" itemValue="#{tipoDocumento}"/>
+								<p:ajax update=":form:tabView:idTableCompra"  onstart="PF('blockUIWidgetGeneral').block();" oncomplete="PF('blockUIWidgetGeneral').unblock();" />
+							</p:selectOneMenu>
+						</f:facet>
+						<h:outputText value="#{compra.tipoDocumento.descripcion}" />
+					</p:column>
+					
+					<p:column headerText="Serie" sortBy="#{compra.serie}" filterBy="#{compra.serie}"  filterMatchMode="contains">
+						<h:outputText value="#{compra.serie}" />
+					</p:column>
+					
+					<p:column headerText="Numero" sortBy="#{compra.numero}" filterBy="#{compra.numero}"  filterMatchMode="contains">
+						<h:outputText value="#{compra.numero}" />
+					</p:column>
+					
+					<p:column headerText="Documento Compra Ref."  filterMatchMode="contains">
+						<h:outputText value="#{compra.documentoCompraRef eq null?'': compra.documentoCompraRef.serie.concat('-').concat(compra.documentoCompraRef.numero) }" />
+					</p:column>
+					
+					<p:column headerText="Proveedor" sortBy="#{compra.proveedor.razonSocial}" filterBy="#{compra.proveedor.razonSocial}"  filterMatchMode="contains">
+						<h:outputText value="#{compra.proveedor.razonSocial}" />
+					</p:column>
+					
+					<p:column headerText="Fecha Emision" filterMatchMode="contains">
+						<h:outputText value="#{compra.fechaEmision}" > 
+							<f:convertDateTime pattern="dd/MM/yyyy" />
+						</h:outputText>
+					</p:column>
+					
+					<p:column headerText="IGV" filterMatchMode="contains">
+						<h:outputText value="#{compra.igv}" >
+			                <f:convertNumber type="currency" currencySymbol=""/>
+			            </h:outputText>
+					</p:column>
+					
+					<p:column headerText="SubTotal" filterMatchMode="contains">
+						<h:outputText value="#{compra.subTotal}" >
+			                <f:convertNumber type="currency" currencySymbol=""/>
+			            </h:outputText>
+					</p:column>
+					
+					<p:column headerText="Total" filterMatchMode="contains">
+						<h:outputText value="#{compra.total}" >
+			                <f:convertNumber type="currency" currencySymbol=""/>
+			            </h:outputText>
+					</p:column>
+					
+					<p:column headerText="Fecha Registro" filterMatchMode="contains">
+						<h:outputText value="#{compra.fechaRegistro}" > 
+							<f:convertDateTime pattern="dd/MM/yyyy" />
+						</h:outputText>
+					</p:column>
+					
+					<p:column headerText="Usuario"  filterMatchMode="contains">
+						<h:outputText value="#{compra.usuario.username}" />
+					</p:column>
+				</p:dataTable>
+				
+				<p:contextMenu id="menuTableDoc" for="idTableCompra" >
+		            <p:menuitem value="Anular" icon="pi pi-trash" oncomplete="PF('anulaDocumento').show()"  />
+		        </p:contextMenu>
+				
+			</p:tab>
+			
+			<p:tab title="Registrar nueva compra">
+			
+				<h:panelGrid columns="3" id="gridRegistComp">
+
+					<h:outputLabel value="Fecha de Emisión del Documento: " />
+					<p:datePicker id="fecha" value="#{compraBean.documentoCompraNew.fechaEmision}" style="margin:5px;">
+						<p:ajax update="txt_fecha_Formated, fecha" listener="#{compraBean.validacionFecha}" />
+					</p:datePicker>
+
+					<h:outputText style="font-size: 22px; font-weight: bold; color: #547E11;" id="txt_fecha_Formated" value="#{compraBean.documentoCompraNew.fechaEmision}">
+						<f:convertDateTime pattern="EEEEE, dd MMMM yyyy" />
+					</h:outputText>
+					
+				</h:panelGrid>
+					
+				<h:panelGrid columns="4" id="gridRegistComp2">
+				
+					<h:outputLabel value="Proveedor:" />
+		           	<p:autoComplete scrollHeight="300" value="#{compraBean.documentoCompraNew.proveedor}" dropdown="true" converter="#{compraBean.conversorProveedor}" completeMethod="#{compraBean.completeProveedor}"  
+		                        var="pro" itemLabel="#{pro.razonSocial}" itemValue="#{pro}" forceSelection="true"  > 
+		            </p:autoComplete>
+
+					<h:outputLabel value="Documento:" />
+					<p:selectOneMenu id="idTipoComprobante" value="#{compraBean.documentoCompraNew.tipoDocumento}" converter="#{compraBean.conversorTipoDocumento}" >
+						<f:selectItems value="#{compraBean.lstTipoDocumento}" var="tipoDocumento" itemLabel="#{tipoDocumento.descripcion}" itemValue="#{tipoDocumento}" />
+						<p:ajax update=":form:tabView:gridRegistComp2"/>
+					</p:selectOneMenu>
+					
+					<p:commandButton id="movieBtn" style="font-size: 14px;" value="Importar Compra" icon="pi pi-search" update=":form:tabView:tableDocCompra" rendered="#{compraBean.documentoCompraNew.tipoDocumento.abreviatura eq 'C' or compraBean.documentoCompraNew.tipoDocumento.abreviatura eq 'D'}"/>
+					<p:overlayPanel for="movieBtn" dynamic="true" style="width:800px" widgetVar="moviePicker" rendered="#{compraBean.documentoCompraNew.tipoDocumento.abreviatura eq 'C' or compraBean.documentoCompraNew.tipoDocumento.abreviatura eq 'D'}">
+						<p:dataTable var="compra" value="#{compraBean.lstDocCompraLazy}" rows="5" paginator="true" selectionMode="single" rowIndexVar="row" paginatorPosition="bottom" 
+							selection="#{compraBean.docCompraSelected}" rowKey="#{compra.id}" id="tableDocCompra" emptyMessage="No se encontraron resultados" size="small" >
+							<p:ajax event="rowSelect" listener="#{compraBean.seleccionarDocCompra()}" oncomplete="PF('moviePicker').hide()" update=":form:tabView:gridRegistComp2"/>
+	
+							<p:column headerText="Documento"  filterMatchMode="contains">
+								<h:outputText value="#{compra.tipoDocumento.descripcion}" />
+							</p:column>
+							<p:column headerText="Serie-Numero"  filterMatchMode="contains">
+								<h:outputText value="#{compra.serie}-#{compra.numero}" />
+							</p:column>
+							<p:column headerText="Proveedor"  filterMatchMode="contains">
+								<h:outputText value="#{compra.proveedor.razonSocial}" />
+							</p:column>
+							<p:column headerText="Fecha Emision" filterMatchMode="contains">
+								<h:outputText value="#{compra.fechaEmision}" > 
+									<f:convertDateTime pattern="dd/MM/yyyy" />
+								</h:outputText>
+							</p:column>
+							<p:column headerText="IGV" filterMatchMode="contains">
+								<h:outputText value="#{compra.igv}" >
+					                <f:convertNumber type="currency" currencySymbol=""/>
+					            </h:outputText>
+							</p:column>
+							<p:column headerText="SubTotal" filterMatchMode="contains">
+								<h:outputText value="#{compra.subTotal}" >
+					                <f:convertNumber type="currency" currencySymbol=""/>
+					            </h:outputText>
+							</p:column>
+							<p:column headerText="Total" filterMatchMode="contains">
+								<h:outputText value="#{compra.total}" >
+					                <f:convertNumber type="currency" currencySymbol=""/>
+					            </h:outputText>
+							</p:column>
+							<p:column headerText="Fecha Registro" filterMatchMode="contains">
+								<h:outputText value="#{compra.fechaRegistro}" > 
+									<f:convertDateTime pattern="dd/MM/yyyy" />
+								</h:outputText>
+							</p:column>
+							
+							<p:column headerText="Usuario"  filterMatchMode="contains">
+								<h:outputText value="#{compra.usuario.username}" />
+							</p:column>
+							
+						</p:dataTable>
+					</p:overlayPanel>
+				
+				
+					<h:outputText value="#{compraBean.nombreDocCompraSelected}" style="font-size: 20px;color:#007d4c;font-weight: bolder;" rendered="#{compraBean.documentoCompraNew.tipoDocumento.abreviatura eq 'C' or compraBean.documentoCompraNew.tipoDocumento.abreviatura eq 'D'}"/>
+					
+					<p:commandLink actionListener="#{compraBean.eliminarNombreDocCompra}" title="ELIMINAR" update=":form:tabView:gridRegistComp2" rendered="#{compraBean.documentoCompraNew.tipoDocumento.abreviatura eq 'C' or compraBean.documentoCompraNew.tipoDocumento.abreviatura eq 'D'}">
+                        <p:graphicImage value="/recursos/images/eliminar.gif" rendered="#{compraBean.documentoCompraNew.tipoDocumento.abreviatura eq 'C' or compraBean.documentoCompraNew.tipoDocumento.abreviatura eq 'D'}" />
+                    </p:commandLink>
+
+					
+					<h:outputLabel value="Serie:" />
+					<p:inputText id="optionSerie" value="#{compraBean.documentoCompraNew.serie}" />
+					
+					<h:outputLabel value="Número:" />
+					<p:inputText value="#{compraBean.documentoCompraNew.numero}" />					
+				
+					<h:outputLabel value="SubTotal:" />
+					<p:inputNumber decimalSeparator="." thousandSeparator=","  id="idSubTotal" value="#{compraBean.documentoCompraNew.subTotal}" />
+					
+					<h:outputLabel value="IGV:" />
+					<p:inputNumber decimalSeparator="." thousandSeparator=","  id="idIgv" value="#{compraBean.documentoCompraNew.igv}"/>
+					
+					<h:outputLabel value="Total:" />
+					<p:inputNumber decimalSeparator="." thousandSeparator=","  id="idTotal" value="#{compraBean.documentoCompraNew.total}" />
+					
+					<h:outputLabel value="Descuento:" />
+					<p:inputNumber decimalSeparator="." thousandSeparator=","  value="#{compraBean.documentoCompraNew.descuento}" symbol="%" symbolPosition="s" emptyValue="always" />
+					
+					<p:commandButton value="Aplicar Descuento" actionListener="#{compraBean.aplicarDescuento}" update="idSubTotal idIgv idTotal idTableDetalle" />
+					
+        			<p:selectBooleanCheckbox value="#{compraBean.checkGeneraPres}" itemLabel="Generar Presentaciones"/>
+					
+				</h:panelGrid>
+				
+				<h:panelGrid columns="3" >
+					<p:commandButton value="Agregar Detalle" actionListener="#{compraBean.agregarDetalleCompra()}" update="dialogDetalleDoc" oncomplete="PF('detalleDialog').show();" icon="pi pi-plus-circle" style="margin: 5px"/>
+					<p:commandButton value="Guardar" actionListener="#{compraBean.validaDocumentoCompra}"  />
+					<p:commandButton value="Guardar Temporal" actionListener="#{compraBean.validaDocumentoCompraTemporal}" />
+				</h:panelGrid>
+				
+				<p:dataTable reflow="true" var="pre" id="idTableDetalle" value="#{compraBean.lstDetDocCompraNew}" widgetVar="usersTable" rowIndexVar="index" paginator="true" rows="15" size="small"
+		            emptyMessage="No se encontraron resultados" style="width: 120%" paginatorPosition="bottom" rowKey="#{pre.id}" selection="#{compraBean.detalleDocumentoCompraNew}" selectionMode="single" 
+		            lazy="true">
+		            
+		            <f:facet name="header">
+		                <div class="p-d-flex p-ai-center p-jc-between" >
+		                	<h:outputLabel value="Total Detalle:" style="font-size: 25px; font-weight: bold;"/>
+							<h:outputLabel value="#{compraBean.totalDetalle}"  style="font-size: 25px; font-weight: bold; color: red;"  />
+		                </div>
+		            </f:facet>
+		            
+		            <p:ajax event="rowSelect" listener="#{compraBean.updateDetalleCompra()}" update="dialogDetalleDoc"  oncomplete="PF('detalleDialog').show();" />
+		
+		           <p:column style="width:42px;text-align: left">
+		                <f:facet name="header">
+		                
+		                </f:facet>
+		            </p:column>
+		
+		           	<p:column width="25px">
+		                      #{row +1}
+		        	</p:column>
+		
+		           <p:column headerText="Descripcion" sortBy="#{pre.producto.descripcion}" filterBy="#{pre.producto.descripcion}" filterMatchMode="contains">
+		                <h:outputText value="#{pre.producto.descripcion}" />
+		           </p:column>
+		           
+		           <p:column headerText="Descripcion Ticket" sortBy="#{pre.producto.descripcionTicket}" filterMatchMode="contains">
+		                <h:outputText value="#{pre.producto.descripcionTicket}" />
+		           </p:column>
+		           
+		           <p:column headerText="Familia" sortBy="#{pre.producto.familia.descripcion}" filterBy="#{pre.producto.familia.descripcion}" filterMatchMode="contains">
+		                <h:outputText value="#{pre.producto.familia.descripcion}" />
+		           </p:column>
+		           
+		           <p:column headerText="Laboratorio" sortBy="#{pre.laboratorio.nombre}" filterBy="#{pre.laboratorio.nombre}" filterMatchMode="contains">
+		                <h:outputText value="#{pre.laboratorio.nombre}" />
+		           </p:column>
+		           
+		           <p:column headerText="Número Lote" sortBy="#{pre.numeroLote}" filterBy="#{pre.numeroLote}" filterMatchMode="contains">
+		                <h:outputText value="#{pre.numeroLote}" />
+		           </p:column>
+		           
+		           <p:column headerText="Código" sortBy="#{pre.codigo}" filterBy="#{pre.codigo}" filterMatchMode="contains">
+		                <h:outputText value="#{pre.codigo}" />
+		           </p:column>
+		           
+		           <p:column headerText="Unidad Medida" sortBy="#{pre.unidadMedida.nombre}" filterMatchMode="contains">
+		                <h:outputText value="#{pre.unidadMedida.nombre}" />
+		           </p:column>
+		           
+		           <p:column headerText="Número Bultos" sortBy="#{pre.cantidadBulto}" filterMatchMode="contains">
+		                <h:outputText value="#{pre.cantidadBulto}" />
+		           </p:column>
+		           
+		           <p:column headerText="Unidades Por Bulto" sortBy="#{pre.unidadPorBulto}" filterMatchMode="contains">
+		                <h:outputText value="#{pre.unidadPorBulto}" />
+		           </p:column>
+		           
+		           <p:column headerText="Fraccionar" filterMatchMode="contains">
+		                <h:outputText value="#{pre.fraccionar ? pre.numeroFraccion : 'NO'}" />
+		           </p:column>
+		           
+		           <p:column headerText="Stock Actual(Unid.)" sortBy="#{pre.stockUnidad}" style="color: blue" filterMatchMode="contains">
+		                <h:outputText value="#{pre.stockUnidad}" style="font-size: 14px;"> 
+							<f:convertNumber type="currency" currencySymbol=""/>
+						</h:outputText>
+		           </p:column>
+		           
+		           <p:column headerText="Precio Compra" filterMatchMode="contains">
+			           <h:outputText value="#{pre.precioCompra}" style="font-size: 14px;"> 			</h:outputText>
+		           </p:column>
+		           
+		           <p:column headerText="Principio Activo" sortBy="#{pre.producto.principioActivo.nombre}" filterBy="#{pre.producto.principioActivo.nombre}" filterMatchMode="contains">
+		                <h:outputText value="#{pre.producto.principioActivo.nombre}" />
+		           </p:column>
+		           
+		           <p:column headerText="Dolencia" sortBy="#{pre.producto.dolencia.nombre}" filterBy="#{pre.producto.dolencia.nombre}" filterMatchMode="contains">
+		                <h:outputText value="#{pre.producto.dolencia.nombre}" />
+		           </p:column>
+		           
+		           <p:column headerText="Precio Bulto" filterMatchMode="contains">
+		                <h:outputText value="#{pre.precioBulto}" />
+		           </p:column>
+		           
+		           <p:column headerText="Precio Fracción" filterMatchMode="contains">
+		                <h:outputText value="#{pre.precioFraccion}" />
+		           </p:column>
+		           
+		           <p:column headerText="Precio Unidad" filterMatchMode="contains">
+		                <h:outputText value="#{pre.precioUnidad}" />
+		           </p:column>
+		           
+		           <p:column headerText="Tipo Operación" sortBy="#{pre.producto.tipoOperacion}" filterMatchMode="contains">
+		                <h:outputText value="#{pre.producto.tipoOperacion}" />
+		           </p:column>
+		           
+		           <p:column width="50px" filterMatchMode="contains">
+						<p:commandButton   icon="pi pi-trash" styleClass="rounded-button ui-button-danger" action="#{compraBean.eliminarDetalleDocCompra(index)}" 
+						update="form:tabView:idTableDetalle"/>
+					</p:column>
+		     
+		        </p:dataTable>
+				
+			</p:tab>
+			
+		</p:tabView>
+	</h:form>
+	
+	<p:dialog modal="true" dynamic="true" closeOnEscape="true" id="dialogDetalleDoc" header="#{compraBean.tituloDialog}" widgetVar="detalleDialog" resizable="false" closable="true"
+        appendTo="@(body)" style="width:auto">
+        <h:form id="formLaboratorio">
+            <h:panelGrid id="grid" columns="6">
+            	<h:outputLabel value="Producto:" style="margin:10px"/>
+	           	<p:autoComplete scrollHeight="300" value="#{compraBean.detalleDocumentoCompraNew.producto}" dropdown="true" converter="#{compraBean.conversorProducto}" completeMethod="#{compraBean.completeProducto}"  
+	                        var="prod" itemLabel="#{prod.descripcion}" itemValue="#{prod}" forceSelection="true"  > 
+	                <p:column >
+	                	<h:outputLabel value="#{prod.descripcion}"/>
+	                </p:column>
+	                <p:column >
+	                	<h:outputLabel value="#{prod.codigoBarra}" /> 
+	                </p:column> 
+	                <p:ajax event="change" listener="#{compraBean.busquedaProducto}" update=":formLaboratorio:idLab :formLaboratorio:idCodBarra"/>
+	                
+	            </p:autoComplete>
+	            
+	            <h:outputLabel value="Laboratorio:" style="margin:10px"/>
+	           	<p:autoComplete id="idLab" scrollHeight="300" value="#{compraBean.detalleDocumentoCompraNew.laboratorio}" dropdown="true" converter="#{compraBean.conversorLaboratorio}" completeMethod="#{compraBean.completeLaboratorio}"  
+	                        var="pro" itemLabel="#{pro.nombre}" itemValue="#{pro}" forceSelection="true"  > 
+	            </p:autoComplete>
+	            
+	            <h:outputLabel value="Número de Lote:" style="margin:10px" />
+               	<p:inputText value="#{compraBean.detalleDocumentoCompraNew.numeroLote}" maxlength="45" />
+               	
+               	<h:outputLabel value="Código Externo:" style="margin:10px" />
+               	<p:inputText value="#{compraBean.detalleDocumentoCompraNew.codigoExterno}" maxlength="45" />
+	            
+	            <h:outputLabel value="Codigo:" style="margin:10px" />
+               	<p:inputText id="idCodBarra" value="#{compraBean.detalleDocumentoCompraNew.codigo}" maxlength="45"/>
+               	
+               	<h:outputLabel value="Fecha Vencimiento" style="margin-left: 10px"/>
+				<p:datePicker value="#{compraBean.detalleDocumentoCompraNew.fechaVencimiento}" />     
+				
+				<h:outputLabel value="Precio de Compra:" style="margin-left: 10px"/>
+               	<p:inputNumber decimalSeparator="." thousandSeparator=","  value="#{compraBean.detalleDocumentoCompraNew.precioCompra}" modifyValueOnWheel="false" decimalPlaces="3" /> 
+
+               	<h:outputLabel value="Costo Por Bulto:" style="margin-left: 10px"/>
+               	<p:inputNumber decimalSeparator="." thousandSeparator=","  value="#{compraBean.detalleDocumentoCompraNew.costoBultoUnitarioReal}" modifyValueOnWheel="false" />  
+               	
+               	<h:outputLabel value="Unidad de Medida:" style="margin:10px"/>
+	           	<p:autoComplete scrollHeight="300" value="#{compraBean.detalleDocumentoCompraNew.unidadMedida}" dropdown="true" converter="#{compraBean.conversorUnidadMedida}" completeMethod="#{compraBean.completeUnidadMedida}"  
+	                        var="pro" itemLabel="#{pro.nombre}" itemValue="#{pro}" forceSelection="true"  > 
+	            </p:autoComplete>
+				
+				<h:outputLabel value="Número de Bultos:" style="margin-left: 10px"/>
+               	<p:inputNumber decimalSeparator="." thousandSeparator=","  value="#{compraBean.detalleDocumentoCompraNew.cantidadBulto}" modifyValueOnWheel="false" > 
+               		<p:ajax update="stock" listener="#{compraBean.calcularStockUnidad}"/>
+               	</p:inputNumber>
+               	
+               	<h:outputLabel value="Unidades por Bulto:" style="margin-left: 10px"/>
+               	<p:inputNumber decimalSeparator="." thousandSeparator=","  value="#{compraBean.detalleDocumentoCompraNew.unidadPorBulto}" modifyValueOnWheel="false" > 
+               		<p:ajax update="stock" listener="#{compraBean.calcularStockUnidad}"/>
+               	</p:inputNumber> 
+               	
+               	<h:outputLabel value="Stock Unidad:" style="margin-left: 10px"/>
+               	<p:inputNumber decimalSeparator="." thousandSeparator=","  value="#{compraBean.detalleDocumentoCompraNew.stockUnidad}" id="stock" modifyValueOnWheel="false" /> 
+               	
+	    		<h:outputLabel value="¿Fraccionar?:" style="margin-left: 10px"/>
+				<p:selectOneMenu value="#{compraBean.detalleDocumentoCompraNew.fraccionar}" >
+                   	<f:selectItem itemLabel="NO" itemValue="{false}"/>
+                   	<f:selectItem itemLabel="SI" itemValue="#{true}"/>
+                   	<p:ajax update="numFrac"/>
+               	</p:selectOneMenu>
+		
+				<h:outputLabel value="Número Fracción:" style="margin-left: 10px"/>
+				<p:spinner value="#{compraBean.detalleDocumentoCompraNew.numeroFraccion}" id="numFrac" disabled="#{compraBean.detalleDocumentoCompraNew.fraccionar eq false}"/>
+	           
+	           	<h:outputLabel value="Precio por Bulto:" style="margin-left: 10px"/>
+               	<p:inputNumber decimalSeparator="." thousandSeparator=","  value="#{compraBean.detalleDocumentoCompraNew.precioBulto}" id="idPrecioBulto" modifyValueOnWheel="false" /> 
+               	
+               	<h:outputLabel value="Precio por Fracción:" style="margin-left: 10px"/>
+               	<p:inputNumber decimalSeparator="." thousandSeparator=","  value="#{compraBean.detalleDocumentoCompraNew.precioFraccion}" id="idPrecioFraccion" modifyValueOnWheel="false" /> 
+               	
+               	<h:outputLabel value="Precio por Unidad:" style="margin-left: 10px"/>
+               	<p:inputNumber decimalSeparator="." thousandSeparator=","  value="#{compraBean.detalleDocumentoCompraNew.precioUnidad}" id="idPrecioUnidad" modifyValueOnWheel="false" /> 
+	            
+	            <h:outputLabel value="Estado:"  style="margin:10px"/>
+                <p:selectOneMenu value="#{compraBean.detalleDocumentoCompraNew.estado}">
+                    <f:selectItem itemLabel="Activo" itemValue="#{true}"/>
+                    <f:selectItem itemLabel="Inactivo" itemValue="#{false}"/> 
+                </p:selectOneMenu>
+				           
+                
+                    
+            </h:panelGrid>
+            
+            <h:outputLabel value="Margen Ganancia: " style="margin-left: 10px"/>
+           	<p:inputNumber decimalSeparator="." thousandSeparator=","  value="#{compraBean.detalleDocumentoCompraNew.margenGanancia}" symbolPosition="s" symbol="%" modifyValueOnWheel="false" /> 
+            <p:commandButton value="Calcular Margen" actionListener="#{compraBean.calcularMargen}" update=":formLaboratorio:idPrecioBulto :formLaboratorio:idPrecioFraccion :formLaboratorio:idPrecioUnidad"/> 
+            <p:commandButton value="Guardar" style="margin:10px" actionListener="#{compraBean.saveDetalleDocumentoCompra}" update="form:tabView:idTableDetalle"/> 
+        </h:form>
+    </p:dialog>
+    
+    <p:dialog height="670px" modal="true" dynamic="true" closeOnEscape="true" id="dialogDocumentoVenta" header="DOCUMENTO DE COMPRA" widgetVar="docVentDialog" resizable="false" closable="true"
+		appendTo="@(body)" style="background-color:green;" width="80%" >
+		<h:form id="formDocumentoVentaDialog">
+
+			<h:panelGrid width="100%" columns="2" styleClass="companyHeaderGrid"> 
+			
+				<p:graphicImage  value="#{navegacionBean.sucursalLogin.id eq 1?'/recursos/images/LOGO.jpg':'/recursos/images/LOGO.jpg'}"  library="demo" style="width:150px"/>	
+
+	        	<h:panelGrid columns="1" style="float:right" >	
+	        		<h:panelGrid columns="1" >	
+	        			<h:outputText value="#{compraBean.documentoCompraSelected.tipoDocumento.abreviatura eq 'B'?'BOLETA': compraBean.documentoCompraSelected.tipoDocumento.abreviatura eq 'F'?'FACTURA': compraBean.documentoCompraSelected.tipoDocumento.abreviatura eq 'C'?'NOTA DE CRÉDITO': 'NOTA DE DÉBITO'} N° #{compraBean.documentoCompraSelected.serie}-#{compraBean.documentoCompraSelected.numero}" style="width : 100px;color:#337CFF;font-size: 20px;"/>				
+					</h:panelGrid>
+					<h:panelGrid columns="2" >	
+						<h:outputText value="Fecha Emisión:" style="float:right"/>
+		        		<h:outputText value="#{compraBean.documentoCompraSelected.fechaEmision}" style="float:right" > 
+		        			<f:convertDateTime pattern="dd/MM/yyyy" />
+		        		</h:outputText>
+					</h:panelGrid>
+					
+				</h:panelGrid>
+			</h:panelGrid>
+			
+			<h:panelGrid columns="2" styleClass="companyHeaderGrid">
+	
+				<h:outputText value="Ruc:" />
+	        	<h:outputText value="#{compraBean.documentoCompraSelected.proveedor.ruc}" />
+				
+				<h:outputText value="Cliente:" />
+	        	<h:outputText value="#{compraBean.documentoCompraSelected.proveedor.razonSocial}" />
+	
+				<h:outputText value="Dirección:" />
+	        	<h:outputText value="#{compraBean.documentoCompraSelected.proveedor.direccion}" />
+	        	
+	        	<h:outputText value="SubTotal:" />
+	        	<h:outputText value="#{compraBean.documentoCompraSelected.subTotal}" />
+	        	
+	        	<h:outputText value="Total:" />
+	        	<h:outputText value="#{compraBean.documentoCompraSelected.total}" />
+		        
+			</h:panelGrid>   
+				
+			<h:panelGrid>
+
+				<p:dataTable reflow="true" var="pre" id="idTableDetalleDocumento" value="#{compraBean.lstDetDocCompraSelected}" widgetVar="usersTable" rowIndexVar="index" size="small"
+		            emptyMessage="No se encontraron resultados" style="width: 120%" >
+		            <f:facet name="header">
+		                <div class="p-d-flex p-ai-center p-jc-between">
+		                </div>
+		            
+		            </f:facet>
+		
+		           <p:column style="width:42px;text-align: left">
+		                <f:facet name="header">
+		                
+		                </f:facet>
+		            </p:column>
+		
+		           	<p:column width="25px">
+		                      #{row +1}
+		        	</p:column>
+		
+		           <p:column headerText="Descripcion" sortBy="#{pre.producto.descripcion}"  filterMatchMode="contains">
+		                <h:outputText value="#{pre.producto.descripcion}" />
+		           </p:column>
+		           
+		           <p:column headerText="Descripcion Ticket" sortBy="#{pre.producto.descripcionTicket}" filterMatchMode="contains">
+		                <h:outputText value="#{pre.producto.descripcionTicket}" />
+		           </p:column>
+		           
+		           <p:column headerText="Familia" sortBy="#{pre.producto.familia.descripcion}"  filterMatchMode="contains">
+		                <h:outputText value="#{pre.producto.familia.descripcion}" />
+		           </p:column>
+		           
+		           <p:column headerText="Laboratorio" sortBy="#{pre.laboratorio.nombre}" filterMatchMode="contains">
+		                <h:outputText value="#{pre.laboratorio.nombre}" />
+		           </p:column>
+		           
+		           <p:column headerText="Número Lote" sortBy="#{pre.numeroLote}" filterMatchMode="contains">
+		                <h:outputText value="#{pre.numeroLote}" />
+		           </p:column>
+		           
+		           <p:column headerText="Código" sortBy="#{pre.codigo}" filterMatchMode="contains">
+		                <h:outputText value="#{pre.codigo}" />
+		           </p:column>
+		           
+		           <p:column headerText="Unidad Medida" sortBy="#{pre.unidadMedida.nombre}" filterMatchMode="contains">
+		                <h:outputText value="#{pre.unidadMedida.nombre}" />
+		           </p:column>
+		           
+		           <p:column headerText="Número Bultos" sortBy="#{pre.cantidadBulto}" filterMatchMode="contains">
+		                <h:outputText value="#{pre.cantidadBulto}" />
+		           </p:column>
+		           
+		           <p:column headerText="Unidades Por Bulto" sortBy="#{pre.unidadPorBulto}" filterMatchMode="contains">
+		                <h:outputText value="#{pre.unidadPorBulto}" />
+		           </p:column>
+		           
+		           <p:column headerText="Fraccionar" filterMatchMode="contains">
+		                <h:outputText value="#{pre.fraccionar ? pre.numeroFraccion : 'NO'}" />
+		           </p:column>
+		           
+		           <p:column headerText="Stock Actual(Unid.)" sortBy="#{pre.stockUnidad}" style="color: blue" filterMatchMode="contains">
+		                <h:outputText value="#{pre.stockUnidad}" />
+		           </p:column>
+		           
+		           <p:column headerText="Precio Compra" filterMatchMode="contains">
+		                <h:outputText value="#{pre.precioCompra}" />
+		           </p:column>
+		           
+		           <p:column headerText="Principio Activo" sortBy="#{pre.producto.principioActivo.nombre}" filterMatchMode="contains">
+		                <h:outputText value="#{pre.producto.principioActivo.nombre}" />
+		           </p:column>
+		           
+		           <p:column headerText="Dolencia" sortBy="#{pre.producto.dolencia.nombre}" filterMatchMode="contains">
+		                <h:outputText value="#{pre.producto.dolencia.nombre}" />
+		           </p:column>
+		           
+		           <p:column headerText="Precio Bulto" filterMatchMode="contains">
+		                <h:outputText value="#{pre.precioBulto}" />
+		           </p:column>
+		           
+		           <p:column headerText="Precio Fracción" filterMatchMode="contains">
+		                <h:outputText value="#{pre.precioFraccion}" />
+		           </p:column>
+		           
+		           <p:column headerText="Precio Unidad" filterMatchMode="contains">
+		                <h:outputText value="#{pre.precioUnidad}" />
+		           </p:column>
+		           
+		           <p:column headerText="Tipo Operación" sortBy="#{pre.producto.tipoOperacion}" filterMatchMode="contains">
+		                <h:outputText value="#{pre.producto.tipoOperacion}" />
+		           </p:column>
+		           
+		           <p:column width="50px" filterMatchMode="contains">
+						<p:commandButton   icon="pi pi-trash" styleClass="rounded-button ui-button-danger" action="#{compraBean.eliminarDetalleDocCompra(index)}" 
+						update="form:tabView:idTableDetalle"/>
+					</p:column>
+		     
+		        </p:dataTable>
+	
+			</h:panelGrid>
+			
+		</h:form>
+	</p:dialog>
+	
+	<pe:blockUI target="saveDocumentoCompraTemporal" widgetVar="blockUIWidgetDocumentoTemporal">
+          <h:form style="background: white"> 
+          <h:outputText value="Cargando, espere..." style="white-space: nowrap; font-weight:bold; color: #036fab; background: white"/> 
+          </h:form>
+    </pe:blockUI>
+	<p:confirmDialog id="saveDocumentoCompraTemporal" message="¿Está seguro de guardar el documento de compraTemporal?" header="Confirmación" severity="alert" widgetVar="saveDocumentoCompraTemporal" appendTo="@(body)">
+        <h:form >
+            <p:commandButton value="SI" onstart="PF('blockUIWidgetDocumentoTemporal').block();" oncomplete="PF('blockUIWidgetDocumentoTemporal').unblock();PF('saveDocumentoCompraTemporal').hide()"  action="#{compraBean.saveDocumentoCompraTemporal()}"  />
+            <p:commandButton value="NO" oncomplete="PF('saveDocumentoCompraTemporal').hide()"/>
+        </h:form>
+    </p:confirmDialog>
+    
+     <pe:blockUI target="saveDocumentoCompra" widgetVar="blockUIWidgetDocumento">
+          <h:form style="background: white"> 
+          <h:outputText value="Cargando, espere..." style="white-space: nowrap; font-weight:bold; color: #036fab; background: white"/> 
+          </h:form>
+    </pe:blockUI>
+	<p:confirmDialog id="saveDocumentoCompra" message="¿Está seguro de guardar el documento de compra?" header="Confirmación" severity="alert" widgetVar="saveDocumentoCompra" appendTo="@(body)">
+        <h:form >
+            <p:commandButton value="SI" onstart="PF('blockUIWidgetDocumento').block();" oncomplete="PF('blockUIWidgetDocumento').unblock();PF('saveDocumentoCompra').hide()"  action="#{compraBean.saveDocumentoCompra()}" update=":form:tabView:idTableCompra  :form:tabView:gridRegistComp2 :form:tabView:gridRegistComp :form:tabView:idTableDetalle" />
+            <p:commandButton value="NO" oncomplete="PF('saveDocumentoCompra').hide()"/>
+        </h:form>
+    </p:confirmDialog>
+    
+    <pe:blockUI target="anulaDocumento" widgetVar="blockUIWidgetAnularDoc">
+          <h:form style="background: white"> 
+          <h:outputText value="Cargando, espere..." style="white-space: nowrap; font-weight:bold; color: #036fab; background: white"/> 
+          </h:form>
+    </pe:blockUI>
+    <p:confirmDialog id="anulaDocumento" message="¿Está seguro de anular el documento de compra?" header="Confirmación" severity="alert" widgetVar="anulaDocumento" appendTo="@(body)">
+        <h:form >
+            <p:commandButton value="SI" onstart="PF('blockUIWidgetAnularDoc').block();" oncomplete="PF('blockUIWidgetAnularDoc').unblock();PF('anulaDocumento').hide()"  action="#{compraBean.anularDocumentoCompra()}" update=":form:tabView:idTableCompra"/>
+            <p:commandButton value="NO" oncomplete="PF('anulaDocumento').hide()"/>
+        </h:form>
+    </p:confirmDialog>
+    
+    <pe:blockUI widgetVar="blockUIWidgetGeneral">
+          <h:form style="background: white"> 
+          <h:outputText value="Cargando, espere..." style="white-space: nowrap; font-weight:bold; color: #036fab; background: white"/> 
+          </h:form>
+    </pe:blockUI>
+
+</ui:composition>

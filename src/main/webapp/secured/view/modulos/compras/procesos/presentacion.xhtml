@@ -1,0 +1,399 @@
+   <ui:composition xmlns="http://www.w3.org/1999/xhtml"
+    xmlns:ui="http://java.sun.com/jsf/facelets"
+    xmlns:h="http://java.sun.com/jsf/html"
+    xmlns:p="http://primefaces.org/ui"
+    xmlns:pe="http://primefaces.org/ui/extensions"
+    locale="#{localeBean.usedLocale}"
+    xmlns:f="http://java.sun.com/jsf/core">
+ 
+
+    <h:form id="form">
+    	<h2 style="color: #007d4c;">MANTENIMIENTOS > PRESENTACIONES</h2>
+    
+    	<p:tabView id="tabView">
+			<p:tab title="Lista de Presentaciones"> 
+		        
+		        <p:selectOneButton value="#{presentacionBean.estadoFiltro}" unselectable="false" style="margin-left:40px">
+					<f:selectItem itemLabel="Pendientes" itemValue="Pendiente" />
+					<f:selectItem itemLabel="Consumidos" itemValue="Consumido" />
+					<f:selectItem itemLabel="Devueltos" itemValue="Devuelto" />
+					<f:selectItem itemLabel="Vencidos" itemValue="Vencido" />
+					<f:selectItem itemLabel="Anulados" itemValue="Anulado" />
+					<p:ajax update=":form:tabView:idTable" />
+				</p:selectOneButton>
+				
+				<p:commandButton style="margin-left:40px" value="Descargar" ajax="false" onclick="PrimeFaces.monitorDownload(start, stop); PF('blockUIWidgetGeneral').block();" actionListener="#{presentacionBean.procesarExcel}" oncomplete="PF('blockUIWidgetGeneral').unblock();" icon="pi pi-file-excel" styleClass="mr-2">
+		           <p:fileDownload value="#{presentacionBean.fileDes}"/> 
+		      	</p:commandButton>
+	
+		       <p:dataTable reflow="true" var="pre" id="idTable" value="#{presentacionBean.lstPresentacionLazy}" widgetVar="usersTable" rowIndexVar="row" paginator="true" rows="15" size="small"
+		            emptyMessage="No se encontraron resultados" style="width: 120%" paginatorPosition="bottom" rowKey="#{pre.id}" selection="#{presentacionBean.presentacionSelected}" selectionMode="single">
+		            <f:facet name="header">
+		                <div class="p-d-flex p-ai-center p-jc-between">
+		                	<p:commandButton value="Presentación" actionListener="#{presentacionBean.agregarPresentacion}" update="dialogPresentacion" oncomplete="PF('presentacionDialog').show();" icon="pi pi-plus-circle" style="margin: 5px"/>
+		                
+		                    <p:commandButton value="Producto" actionListener="#{presentacionBean.agregarProducto}" update="dialogProyecto" oncomplete="PF('productoDialog').show();" icon="pi pi-plus-circle" style="margin: 5px"/>
+		                    <p:commandButton value="Unidad de medida"  update="dialogUnidadMedida" oncomplete="PF('unidadMedidaDialog').show();" icon="pi pi-plus-circle" style="margin: 5px"/>
+		                </div>
+		            </f:facet>
+		            <p:ajax event="rowSelect" update="dialogPresentacion" listener="#{presentacionBean.modificarPresentacion}" oncomplete="PF('presentacionDialog').show();" />
+		
+		           <p:column style="width:42px;text-align: left">
+		                <f:facet name="header">
+		                
+		                </f:facet>
+		            </p:column>
+		
+		           	<p:column width="25px">
+		                      #{row +1}
+		        	</p:column>
+		
+		           <p:column headerText="Descripcion" sortBy="#{pre.producto.descripcion}" filterBy="#{pre.producto.descripcion}" filterMatchMode="contains">
+		                <h:outputText value="#{pre.producto.descripcion}" />
+		           </p:column>
+		           
+		           <p:column headerText="Descripcion Ticket" sortBy="#{pre.producto.descripcionTicket}" filterMatchMode="contains">
+		                <h:outputText value="#{pre.producto.descripcionTicket}" />
+		           </p:column>
+		           
+		           <p:column headerText="Familia" sortBy="#{pre.producto.familia.descripcion}" filterBy="#{pre.producto.familia.descripcion}" filterMatchMode="contains">
+		                <h:outputText value="#{pre.producto.familia.descripcion}" />
+		           </p:column>
+		           
+		           <p:column headerText="Laboratorio" sortBy="#{pre.laboratorio.nombre}" filterBy="#{pre.laboratorio.nombre}" filterMatchMode="contains">
+		                <h:outputText value="#{pre.laboratorio.nombre}" />
+		           </p:column>
+		           
+		           <p:column headerText="Número Lote" sortBy="#{pre.numeroLote}" filterBy="#{pre.numeroLote}" filterMatchMode="contains">
+		                <h:outputText value="#{pre.numeroLote}" />
+		           </p:column>
+		           
+		           <p:column headerText="Código" sortBy="#{pre.codigo}" filterBy="#{pre.codigo}" filterMatchMode="contains">
+		                <h:outputText value="#{pre.codigo}" />
+		           </p:column>
+		           
+		           <p:column headerText="Fecha Venc." sortBy="#{pre.fechaVencimiento}" style="text-align:center;width: 100px;" filterMatchMode="contains">
+						<h:outputText value="#{pre.fechaVencimiento}">
+							<f:convertDateTime pattern="dd/MM/yyyy" />
+						</h:outputText>
+					</p:column>
+		           
+		           <p:column headerText="Unidad Medida" sortBy="#{pre.unidadMedida.nombre}" filterMatchMode="contains">
+		                <h:outputText value="#{pre.unidadMedida.nombre}" />
+		           </p:column>
+		           
+		           <p:column headerText="Número Bultos" sortBy="#{pre.cantidadBulto}" filterMatchMode="contains">
+		                <h:outputText value="#{pre.cantidadBulto}" />
+		           </p:column>
+		           
+		           <p:column headerText="Unidades Por Bulto" sortBy="#{pre.unidadPorBulto}" filterMatchMode="contains">
+		                <h:outputText value="#{pre.unidadPorBulto}" />
+		           </p:column>
+		           
+		           <p:column headerText="Fraccionar" filterMatchMode="contains">
+		                <h:outputText value="#{pre.fraccionar ? pre.numeroFraccion : 'NO'}" />
+		           </p:column>
+		           
+		           <p:column headerText="Stock Actual(Unid.)" sortBy="#{pre.stockUnidad}" style="color: blue" filterMatchMode="contains">
+		                <h:outputText value="#{pre.stockUnidad}" />
+		           </p:column>
+		           
+		           <p:column headerText="Precio Compra" filterMatchMode="contains">
+		                <h:outputText value="#{pre.precioCompra}" />
+		           </p:column>
+		           
+		           <p:column headerText="Principio Activo" sortBy="#{pre.producto.principioActivo.nombre}" filterBy="#{pre.producto.principioActivo.nombre}" filterMatchMode="contains">
+		                <h:outputText value="#{pre.producto.principioActivo.nombre}" />
+		           </p:column>
+		           
+		           <p:column headerText="Dolencia" sortBy="#{pre.producto.dolencia.nombre}" filterBy="#{pre.producto.dolencia.nombre}" filterMatchMode="contains">
+		                <h:outputText value="#{pre.producto.dolencia.nombre}" />
+		           </p:column>
+		           
+		           <p:column headerText="Precio Bulto" filterMatchMode="contains">
+		                <h:outputText value="#{pre.precioBulto}" />
+		           </p:column>
+		           
+		           <p:column headerText="Precio Fracción" filterMatchMode="contains">
+		                <h:outputText value="#{pre.precioFraccion}" />
+		           </p:column>
+		           
+		           <p:column headerText="Precio Unidad" filterMatchMode="contains">
+		                <h:outputText value="#{pre.precioUnidad}" />
+		           </p:column>
+		           
+		           <p:column headerText="Tipo Operación" sortBy="#{pre.producto.tipoOperacion}" filterMatchMode="contains">
+		                <h:outputText value="#{pre.producto.tipoOperacion}" />
+		           </p:column>
+		     
+		        </p:dataTable>
+		        
+		        <p:contextMenu id="menuTablePre" for="idTable" >
+		            <p:menuitem value="Ver Historial de Ventas" icon="pi pi-book" actionListener="#{presentacionBean.verHistorialVentas()}" oncomplete="PF('historialVentasDialog').show()" update=":formDetalleDocVenta:idTableDetalleDocumento" />
+		        </p:contextMenu>
+		        
+			</p:tab>
+		</p:tabView>
+    </h:form>
+    
+    <p:dialog modal="true" dynamic="true" closeOnEscape="true" id="dialogHistorialVentas" header="HISTORIAL DE VENTAS" widgetVar="historialVentasDialog" resizable="false" closable="true"
+        appendTo="@(body)" style="width:300px" width="55%">
+        <h:form id="formDetalleDocVenta"> 
+        
+       		<p:commandButton  value="Descargar Historial" ajax="false" onclick="PrimeFaces.monitorDownload(start, stop); PF('blockUIWidgetGeneral').block();" actionListener="#{presentacionBean.procesarExcelHistorial}" oncomplete="PF('blockUIWidgetGeneral').unblock();" icon="pi pi-file-excel" styleClass="mr-2">
+	           <p:fileDownload value="#{presentacionBean.fileDesHistorial}"/> 
+	      	</p:commandButton>
+	      	
+       		<p:dataTable var="det" id="idTableDetalleDocumento" value="#{presentacionBean.lstDetDocVenta}"  rowIndexVar="row" paginator="true" rows="10" size="small"
+			emptyMessage="No se encontraron detalles de documento de venta." style="width:100%" paginatorPosition="bottom" rowKey="#{det.id}"  selectionMode="single" >
+		
+				<p:column headerText="Documento" filterMatchMode="contains" style="text-align:center">
+					<h:outputText value="#{det.documentoVenta.serie}-#{det.documentoVenta.numero}"/>
+				</p:column>
+				
+				<p:column headerText="Fecha Emisión" sortBy="#{det.documentoVenta.fechaEmision}" filterMatchMode="contains" style="text-align:center">
+					<h:outputText value="#{det.documentoVenta.fechaEmision}" > 
+						<f:convertDateTime pattern="dd/MM/yyyy" />
+					</h:outputText>
+				</p:column>
+				
+				<p:column headerText="Cantidad" filterMatchMode="contains" style="text-align:center">
+					<h:outputText value="#{det.cantidad}"/>
+				</p:column>
+				
+				<p:column headerText="Descripción" filterMatchMode="contains" style="text-align:center;width:400px" >
+					<h:outputText value="#{det.descripcion}"  style="width:400px"/>
+				</p:column>
+
+				<p:column headerText="Total" filterMatchMode="contains" style="text-align:center">
+					<h:outputText value="#{det.total}"> 
+						<f:convertNumber type="currency" currencySymbol=""/>
+					</h:outputText>
+				</p:column>
+				
+				<p:column headerText="Unidades Stock" filterMatchMode="contains" style="text-align:center">
+					<h:outputText value="#{det.totalUnidadesItem}"/> 
+				</p:column>
+				
+				<p:column headerText="Usuario Registro" filterMatchMode="contains" style="text-align:center">
+					<h:outputText value="#{det.documentoVenta.usuarioRegistro.username}"/>
+				</p:column>
+		
+			</p:dataTable>
+		</h:form>
+        
+    </p:dialog>
+    
+    <p:dialog modal="true" dynamic="true" closeOnEscape="true" id="dialogUnidadMedida" header="UNIDAD DE MEDIDA" widgetVar="unidadMedidaDialog" resizable="false" closable="true"
+        appendTo="@(body)" style="width:auto">
+        <h:form id="formFamilia">
+            <h:panelGrid id="grid" columns="2">
+            	<h:outputLabel value="Nombre:" />
+                <p:inputText value="#{presentacionBean.unidadMedidaNew.nombre}" maxlength="100" />
+                            
+                <h:outputLabel value="Estado:" />
+                <p:selectOneMenu value="#{presentacionBean.unidadMedidaNew.estado}" style="margin:10px" >
+                    <f:selectItem itemLabel="Activo" itemValue="#{true}"/>
+                    <f:selectItem itemLabel="Inactivo" itemValue="#{false}"/> 
+                </p:selectOneMenu>
+                    
+                <p:commandButton value="Guardar" actionListener="#{presentacionBean.saveUnidadMedida()}"/>
+            </h:panelGrid>
+        </h:form>
+    </p:dialog>
+ 
+     
+     
+    <p:dialog modal="true" dynamic="true" closeOnEscape="true" id="dialogProyecto" header="NUEVO PRODUCTO" widgetVar="productoDialog" resizable="false" closable="true"
+        appendTo="@(body)" style="width:auto">
+        <h:form id="formProyecto">
+			<h:panelGrid columns="8" > 
+				
+				<h:outputLabel value="Codigo Fábrica:" style="margin-left: 10px"/>
+               	<p:inputText value="#{presentacionBean.productoNew.codigoFabrica}" maxlength="45" />
+               	
+               	<h:outputLabel value="Codigo Vidagro:" style="margin-left: 10px"/>
+               	<p:inputText value="#{presentacionBean.productoNew.codigoVidagro}" maxlength="45" />
+               	
+               	<h:outputLabel value="Codigo Sunat:" style="margin-left: 10px" />
+               	<p:inputText value="#{presentacionBean.productoNew.codigoSunat}" maxlength="45" />
+               	
+               	<h:outputLabel value="Tipo Operación:" style="margin-left: 10px"/>
+               	<p:selectOneMenu value="#{presentacionBean.productoNew.tipoOperacion}" >
+                   	<f:selectItem itemLabel="OP. GRAVADA" itemValue="GRAVADA"/>
+                   	<f:selectItem itemLabel="OP. INAFECTA" itemValue="INAFECTA"/>
+                   	<f:selectItem itemLabel="OP. EXONERADA" itemValue="EXONERADA"/>
+               	</p:selectOneMenu>
+               	
+               	<h:outputLabel value="*Familia:" style="margin-left: 10px"/>
+               	<p:autoComplete scrollHeight="300" value="#{presentacionBean.productoNew.familia}" dropdown="true" converter="#{presentacionBean.conversorFamilia}" completeMethod="#{presentacionBean.completeFamilia}"  
+                         var="fam" itemLabel="#{fam.descripcion}" itemValue="#{fam}" forceSelection="true"  > 
+	            </p:autoComplete>
+	            
+	            <h:outputLabel value="*Descripción:" style="margin-left: 10px" />
+               	<p:inputText value="#{presentacionBean.productoNew.descripcion}" maxlength="100" > 
+               		<p:ajax event="blur" listener="#{presentacionBean.copiarDescripcion}" update="textTicket"/>
+               	</p:inputText>
+               	
+               	<h:outputLabel value="*Descripción Ticket:" style="margin-left: 10px" />
+               	<p:inputText value="#{presentacionBean.productoNew.descripcionTicket}" id="textTicket" maxlength="100" />
+				
+				<h:outputLabel value="Garantía:" style="margin-left: 10px"/>
+				<p:selectOneMenu value="#{presentacionBean.productoNew.garantia}" >
+                   	<f:selectItem itemLabel="NO" itemValue="{false}"/>
+                   	<f:selectItem itemLabel="SI" itemValue="#{true}"/>
+               	</p:selectOneMenu>
+               	
+               	<h:outputLabel value="Stock Mínimo:" style="margin-left: 10px"/>
+               	<p:inputNumber decimalSeparator="." thousandSeparator=","  value="#{presentacionBean.productoNew.stockMinimo}" modifyValueOnWheel="false" />
+               	
+               	<h:outputLabel value="*Principio Activo:" style="margin-left: 10px"/>
+               	<p:autoComplete scrollHeight="300" value="#{presentacionBean.productoNew.principioActivo}" dropdown="true" converter="#{presentacionBean.conversorPrincipioActivo}" completeMethod="#{presentacionBean.completePrincipioActivo}"  
+                         var="uni" itemLabel="#{uni.nombre}" itemValue="#{uni}" forceSelection="true"  > 
+	            </p:autoComplete>
+	            
+	            <h:outputLabel value="*Dolencia:" style="margin-left: 10px"/>
+               	<p:autoComplete scrollHeight="300" value="#{presentacionBean.productoNew.dolencia}" dropdown="true" converter="#{presentacionBean.conversorDolencia}" completeMethod="#{presentacionBean.completeDolencia}"  
+                         var="uni" itemLabel="#{uni.nombre}" itemValue="#{uni}" forceSelection="true"  > 
+	            </p:autoComplete>
+	            
+	            <h:outputLabel value="Receta Médica:" style="margin-left: 10px"/>
+				<p:selectOneMenu value="#{presentacionBean.productoNew.recetaMedica}" >
+                   	<f:selectItem itemLabel="NO" itemValue="{false}"/>
+                   	<f:selectItem itemLabel="SI" itemValue="#{true}"/>
+               	</p:selectOneMenu>
+               	
+               	<h:outputLabel value="Comentario:" style="margin-left: 10px"/>
+               	<p:inputTextarea value="#{presentacionBean.productoNew.comentario}" rows="2" cols="25" maxlength="200" autoResize="false"/>
+               	
+               	<h:outputLabel value="Estado:" style="margin-left: 10px"/>
+				<p:selectOneMenu value="#{presentacionBean.productoNew.estado}" >
+                   	<f:selectItem itemLabel="NO" itemValue="{false}"/>
+                   	<f:selectItem itemLabel="SI" itemValue="#{true}"/>
+               	</p:selectOneMenu>
+	          
+			</h:panelGrid>   
+			
+			<p:commandButton value="GUARDAR" actionListener="#{presentacionBean.saveProducto}" update=":form:tabView:idTable"/>
+        </h:form>
+    </p:dialog>
+    
+    <p:dialog modal="true" dynamic="true" closeOnEscape="true" id="dialogPresentacion" header="#{presentacionBean.tituloDialog}" widgetVar="presentacionDialog" resizable="false" closable="true"
+        appendTo="@(body)" style="width:auto">
+        <h:form id="formLaboratorio">
+        
+        
+        	 <h:panelGrid id="idGrid" columns="2"> 
+        	 	<h:outputLabel value="Proveedor:" style="margin:10px"/>
+	           	<p:autoComplete scrollHeight="300" value="#{presentacionBean.presentacionSelected.proveedor}" dropdown="true" converter="#{presentacionBean.conversorProveedor}" completeMethod="#{presentacionBean.completeProveedor}"  
+	                        var="pro" itemLabel="#{pro.razonSocial}" itemValue="#{pro}" forceSelection="true"  > 
+	            </p:autoComplete>
+        	 </h:panelGrid>
+        	
+        
+            <h:panelGrid id="grid" columns="6">
+            	<h:outputLabel value="Producto:" style="margin:10px"/>
+	           	<p:autoComplete scrollHeight="300" value="#{presentacionBean.presentacionSelected.producto}" dropdown="true" converter="#{presentacionBean.conversorProducto}" completeMethod="#{presentacionBean.completeProducto}"  
+	                        var="prod" itemLabel="#{prod.descripcion}" itemValue="#{prod}" forceSelection="true"  > 
+	            	<p:column >
+	                	<h:outputLabel value="#{prod.descripcion}"/>
+	                </p:column>
+	                <p:column >
+	                	<h:outputLabel value="#{prod.codigoBarra}" /> 
+	                </p:column> 
+	            	
+	            	<p:ajax event="change" listener="#{presentacionBean.busquedaProducto}" update=":formLaboratorio:idLab :formLaboratorio:idCodBarra"/>
+	            </p:autoComplete>
+	            
+	            <h:outputLabel value="Laboratorio:" style="margin:10px"/>
+	           	<p:autoComplete id="idLab" scrollHeight="300" value="#{presentacionBean.presentacionSelected.laboratorio}" dropdown="true" converter="#{presentacionBean.conversorLaboratorio}" completeMethod="#{presentacionBean.completeLaboratorio}"  
+	                        var="pro" itemLabel="#{pro.nombre}" itemValue="#{pro}" forceSelection="true"  > 
+	            </p:autoComplete>
+	            
+	            <h:outputLabel value="Número de Lote:" style="margin:10px" />
+               	<p:inputText value="#{presentacionBean.presentacionSelected.numeroLote}" maxlength="45" />
+               	
+               	<h:outputLabel value="Código Externo:" style="margin:10px" />
+               	<p:inputText value="#{presentacionBean.presentacionSelected.codigoExterno}" maxlength="45" />
+	            
+	            <h:outputLabel value="Codigo:" style="margin:10px" />
+               	<p:inputText id="idCodBarra" value="#{presentacionBean.presentacionSelected.codigo}" maxlength="45" />
+               	
+               	<h:outputLabel value="Fecha Vencimiento" style="margin-left: 10px"/>
+				<p:datePicker id="basic" value="#{presentacionBean.presentacionSelected.fechaVencimiento}" />     
+				
+				<h:outputLabel value="Precio de Compra:" style="margin-left: 10px"/>
+               	<p:inputNumber decimalSeparator="." thousandSeparator=","  value="#{presentacionBean.presentacionSelected.precioCompra}" modifyValueOnWheel="false" />  
+               	
+               	<h:outputLabel value="Costo por bulto:" style="margin-left: 10px"/>
+               	<p:inputNumber decimalSeparator="." thousandSeparator=","  value="#{presentacionBean.presentacionSelected.costoBultoUnitarioReal}" modifyValueOnWheel="false" />
+               	
+               	<h:outputLabel value="Unidad de Medida:" style="margin:10px"/>
+	           	<p:autoComplete scrollHeight="300" value="#{presentacionBean.presentacionSelected.unidadMedida}" dropdown="true" converter="#{presentacionBean.conversorUnidadMedida}" completeMethod="#{presentacionBean.completeUnidadMedida}"  
+	                        var="pro" itemLabel="#{pro.nombre}" itemValue="#{pro}" forceSelection="true"  > 
+	            </p:autoComplete>
+				
+				<h:outputLabel value="Número de Bultos:" style="margin-left: 10px"/>
+               	<p:inputNumber decimalSeparator="." thousandSeparator=","  value="#{presentacionBean.presentacionSelected.cantidadBulto}" modifyValueOnWheel="false" > 
+               		<p:ajax update="stock" listener="#{presentacionBean.calcularStockUnidad}"/>
+               	</p:inputNumber>
+               	
+               	<h:outputLabel value="Unidades por Bulto:" style="margin-left: 10px"/>
+               	<p:inputNumber decimalSeparator="." thousandSeparator=","  value="#{presentacionBean.presentacionSelected.unidadPorBulto}" modifyValueOnWheel="false" > 
+               		<p:ajax update="stock" listener="#{presentacionBean.calcularStockUnidad}"/>
+               	</p:inputNumber> 
+               	
+               	<h:outputLabel value="Stock Unidad:" style="margin-left: 10px"/>
+               	<p:inputNumber decimalSeparator="." thousandSeparator=","  value="#{presentacionBean.presentacionSelected.stockUnidad}" id="stock" modifyValueOnWheel="false" /> 
+               	
+	    		<h:outputLabel value="¿Fraccionar?:" style="margin-left: 10px"/>
+				<p:selectOneMenu value="#{presentacionBean.presentacionSelected.fraccionar}" >
+                   	<f:selectItem itemLabel="NO" itemValue="{false}"/>
+                   	<f:selectItem itemLabel="SI" itemValue="#{true}"/>
+                   	<p:ajax update="numFrac"/>
+               	</p:selectOneMenu>
+		
+				<h:outputLabel value="Número Fracción:" style="margin-left: 10px"/>
+				<p:spinner value="#{presentacionBean.presentacionSelected.numeroFraccion}" id="numFrac" disabled="#{presentacionBean.presentacionSelected.fraccionar eq false}"/>
+	           
+	           	<h:outputLabel value="Precio por Bulto:" style="margin-left: 10px"/>
+               	<p:inputNumber decimalSeparator="." thousandSeparator=","  id="idPrecioBulto" value="#{presentacionBean.presentacionSelected.precioBulto}" modifyValueOnWheel="false" /> 
+               	
+               	<h:outputLabel value="Precio por Fracción:" style="margin-left: 10px"/>
+               	<p:inputNumber decimalSeparator="." thousandSeparator=","  id="idPrecioFraccion" value="#{presentacionBean.presentacionSelected.precioFraccion}" modifyValueOnWheel="false" /> 
+               	
+               	<h:outputLabel value="Precio por Unidad:" style="margin-left: 10px"/>
+               	<p:inputNumber decimalSeparator="." thousandSeparator=","  id="idPrecioUnidad" value="#{presentacionBean.presentacionSelected.precioUnidad}" modifyValueOnWheel="false" /> 
+	            
+	            <h:outputLabel value="Estado:"  style="margin:10px"/>
+                <p:selectOneMenu value="#{presentacionBean.presentacionSelected.estado}">                    
+                    <f:selectItem itemLabel="Pendientes" itemValue="Pendiente" />
+					<f:selectItem itemLabel="Consumidos" itemValue="Consumido" />
+					<f:selectItem itemLabel="Devueltos" itemValue="Devuelto" />
+					<f:selectItem itemLabel="Vencidos" itemValue="Vencido" />
+					<f:selectItem itemLabel="Anulados" itemValue="Anulado" />
+                </p:selectOneMenu>
+                
+                
+				           
+                
+                    
+            </h:panelGrid>
+            
+            <h:outputLabel value="Margen Ganancia: " style="margin-left: 10px"/>
+           	<p:inputNumber decimalSeparator="." thousandSeparator=","  value="#{presentacionBean.presentacionSelected.margenGanancia}" symbolPosition="s" symbol="%" modifyValueOnWheel="false" /> 
+            <p:commandButton value="Calcular Margen" actionListener="#{presentacionBean.calcularMargen}" update=":formLaboratorio:idPrecioBulto :formLaboratorio:idPrecioFraccion :formLaboratorio:idPrecioUnidad"/> 
+            <p:commandButton value="Guardar" style="margin-left: 10px" actionListener="#{presentacionBean.savePresentacion}" update=":form:tabView:idTable"/> 
+            
+        </h:form>
+    </p:dialog>
+    
+    <pe:blockUI widgetVar="blockUIWidgetGeneral">
+          <h:form style="background: white"> 
+          <h:outputText value="Cargando, espere..." style="white-space: nowrap; font-weight:bold; color: #036fab; background: white"/> 
+          </h:form>
+    </pe:blockUI>
+    
+    
+   
+</ui:composition>

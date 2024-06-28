@@ -1,0 +1,138 @@
+<ui:composition xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:ui="http://java.sun.com/jsf/facelets"
+	xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:p="http://primefaces.org/ui"
+	xmlns:pe="http://primefaces.org/ui/extensions"
+	locale="#{localeBean.usedLocale}"
+	xmlns:f="http://java.sun.com/jsf/core">
+
+ 
+	<h:form id="form" enctype="multipart/form-data">
+		<p:growl id="msgs" showDetail="true"/>
+		<h2 style="color: #007d4c;">VENTAS > SUBIR VOUCHER</h2>
+		
+		<h:panelGrid columns="4" id="grid"> 
+		
+			<h:outputLabel value="Fecha inicio:" style="text-align:right"/>
+			<p:datePicker value="#{subirVoucherBean.fechaIni}" readonlyInput="true">
+				<p:ajax update="idTableDocVenta" listener="#{subirVoucherBean.buscar()}" onstart="PF('blockUIWidgetGeneral').block();" oncomplete="PF('blockUIWidgetGeneral').unblock();" />
+			</p:datePicker>
+			
+			<h:outputLabel value="Fecha fin:" style="text-align:right"/>
+			<p:datePicker value="#{subirVoucherBean.fechaFin}" readonlyInput="true" >
+				<p:ajax update="idTableDocVenta" listener="#{subirVoucherBean.buscar()}" onstart="PF('blockUIWidgetGeneral').block();" oncomplete="PF('blockUIWidgetGeneral').unblock();" />
+			</p:datePicker>
+		
+		</h:panelGrid>
+		
+		<h:panelGrid columns="2" id="gridRegistComp2">
+				
+			<h:outputLabel value="Número de Referencia:" />
+           	<p:inputText value="#{subirVoucherBean.numeroReferencia}"    />		
+
+			<h:outputLabel value="Número de Aprobación:" />
+			<p:inputText value="#{subirVoucherBean.numeroAprobacion}"    />		
+			
+			
+			
+		</h:panelGrid>
+		
+		<p:commandButton value="Buscar" action="#{subirVoucherBean.buscar()}" update="idTableDocVenta" />
+			
+		<p:commandButton value="Guardar" action="#{subirVoucherBean.validaDatosVoucher()}" style="margin-left:20px"/>
+		
+		<p:dataTable reflow="true" var="documento" id="idTableDocVenta" value="#{subirVoucherBean.lstDocVenta}" widgetVar="usersTable" rowIndexVar="index" size="small"
+            emptyMessage="No se encontraron resultados"  >
+            
+            
+            <f:facet name="header">
+                <div class="p-d-flex p-ai-center p-jc-between" >
+                	<h:outputLabel value="LISTA DE DOCUMENTOS DE VENTA" style="font-size: 15px; font-weight: bold;"/>
+                </div>
+            </f:facet>
+
+           <p:column style="width:42px;text-align: left">
+                <f:facet name="header">
+                
+                </f:facet>
+            </p:column>
+
+           	<p:column width="25px">
+                      #{row +1}
+        	</p:column>
+        	
+        	<p:column headerText="Fecha Emisión" filterMatchMode="contains">
+				<h:outputText value="#{documento.fechaEmision}" > 
+					<f:convertDateTime pattern="dd/MM/yyyy" />
+				</h:outputText>
+			</p:column>
+        	
+        	<p:column headerText="Serie-Numero"  filterMatchMode="contains">
+				<h:outputText value="#{documento.serie}-#{documento.numero}" />
+			</p:column>
+			
+			<p:column headerText="Tipo/Monto Pago 1"  filterMatchMode="contains">
+				<h:outputText value="#{documento.tipoPago}-S/.#{documento.montoTipoPago}" />
+			</p:column>
+			
+			<p:column headerText="Tipo/Monto Pago "  filterMatchMode="contains">
+				<h:outputText value="#{documento.tipoPago2}-S/.#{documento.montoTipoPago2}" />
+			</p:column>
+			
+			<p:column width="10%" filterMatchMode="contains">
+				<p:commandButton   icon="pi pi-trash" styleClass="rounded-button ui-button-danger" action="#{subirVoucherBean.eliminarItem(documento)}"  
+				update="idTableDocVenta"/>
+			</p:column>
+          
+     
+        </p:dataTable>
+        
+        <h:panelGrid id="idImag" columns="3"> 
+        
+        	<p:fileUpload value="#{subirVoucherBean.file1}" mode="simple" skinSimple="true" accept=".jpg,.jpeg,.png"/>
+        	<h:outputLabel value="Fecha:"/>
+			<p:datePicker value="#{subirVoucherBean.fechaImag1}" timeInput="true" style="margin:5px; width:220px" pattern="dd/MM/yyyy HH:mm:ss a" showTime="true"/>
+			
+        	<p:fileUpload value="#{subirVoucherBean.file2}" mode="simple" skinSimple="true" accept=".jpg,.jpeg,.png"/>
+        	<h:outputLabel value="Fecha:"/>
+			<p:datePicker value="#{subirVoucherBean.fechaImag2}" timeInput="true" style="margin:5px; width:220px" pattern="dd/MM/yyyy HH:mm:ss a" showTime="true"/>
+			
+        	<p:fileUpload value="#{subirVoucherBean.file3}" mode="simple" skinSimple="true" accept=".jpg,.jpeg,.png"/>
+        	<h:outputLabel value="Fecha:"/>
+			<p:datePicker value="#{subirVoucherBean.fechaImag3}" timeInput="true" style="margin:5px; width:220px" pattern="dd/MM/yyyy HH:mm:ss a" showTime="true"/>
+			
+        	<p:fileUpload value="#{subirVoucherBean.file4}" mode="simple" skinSimple="true" accept=".jpg,.jpeg,.png"/>
+        	<h:outputLabel value="Fecha:"/>
+			<p:datePicker value="#{subirVoucherBean.fechaImag4}" timeInput="true" style="margin:5px; width:220px" pattern="dd/MM/yyyy HH:mm:ss a" showTime="true"/>
+			
+       	 	<p:fileUpload value="#{subirVoucherBean.file5}" mode="simple" skinSimple="true" accept=".jpg,.jpeg,.png"/>
+       	 	<h:outputLabel value="Fecha:"/>
+			<p:datePicker value="#{subirVoucherBean.fechaImag5}" timeInput="true" style="margin:5px; width:220px" pattern="dd/MM/yyyy HH:mm:ss a" showTime="true"/>
+        
+        </h:panelGrid>
+        
+       
+		
+	</h:form>
+	
+	<pe:blockUI widgetVar="blockUIWidgetGeneral">
+          <h:form style="background: white"> 
+          <h:outputText value="Cargando, espere..." style="white-space: nowrap; font-weight:bold; color: #036fab; background: white"/> 
+          </h:form>
+    </pe:blockUI>	
+    
+     <pe:blockUI target="saveVoucher" widgetVar="blockUIWidgetSavePlantilla">
+          <h:form style="background: white"> 
+          <h:outputText value="Cargando, espere..." style="white-space: nowrap; font-weight:bold; color: #036fab; background: white"/> 
+          </h:form>
+    </pe:blockUI>
+    <p:confirmDialog id="saveVoucher" message="¿Está seguro de guardar el voucher?" header="Confirmación" severity="alert" widgetVar="saveVoucher" appendTo="@(body)">
+        <h:form >
+            <p:commandButton value="SI" onstart="PF('blockUIWidgetSavePlantilla').block();" oncomplete="PF('blockUIWidgetSavePlantilla').unblock();PF('saveVoucher').hide()"  action="#{subirVoucherBean.saveVoucher()}" 
+            update=":form:idTableDocVenta :form:grid :form:gridRegistComp2 :form:idImag"/>
+            <p:commandButton value="NO" oncomplete="PF('saveVoucher').hide()"/>
+        </h:form>
+    </p:confirmDialog>
+    
+    
+</ui:composition>

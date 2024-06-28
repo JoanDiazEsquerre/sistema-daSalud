@@ -1,0 +1,95 @@
+   <ui:composition xmlns="http://www.w3.org/1999/xhtml"
+    xmlns:ui="http://java.sun.com/jsf/facelets"
+    xmlns:h="http://java.sun.com/jsf/html"
+    xmlns:p="http://primefaces.org/ui"
+    xmlns:pe="http://primefaces.org/ui/extensions"
+    locale="#{localeBean.usedLocale}"
+    xmlns:f="http://java.sun.com/jsf/core">
+
+    <h:form id="form">
+    	<h2 style="color: #007d4c;">MANTENIMIENTOS > SUCURSAL</h2>
+        <p:selectOneButton value="#{sucursalBean.estadoFilter}" unselectable="false">
+            <f:selectItem itemLabel="Activos" itemValue="#{true}" />
+            <f:selectItem itemLabel="Inactivos" itemValue="#{false}" />
+            <p:ajax update=":form:idTableSuc" />
+        </p:selectOneButton>
+
+       <p:dataTable reflow="true" var="sucursal" id="idTableSuc" value="#{sucursalBean.lstSucursalLazy}" widgetVar="usersTable" rowIndexVar="row" paginator="true" rows="15" size="small"
+            emptyMessage="No se encontraron resultados" paginatorPosition="bottom" rowKey="#{sucursal.id}" selection="#{sucursalBean.sucursalSelected}" selectionMode="single">
+            <f:facet name="header">
+                <div class="p-d-flex p-ai-center p-jc-between">
+                    <span>Lista de Sucursales</span>
+                </div>
+            </f:facet>
+            <p:ajax event="rowSelect" update="dialogProyecto" listener="#{sucursalBean.modificarSucursal}" oncomplete="PF('sucursalDialog').show();" />
+
+           <p:column style="width:42px;text-align: left">
+                <f:facet name="header">
+                    <p:commandLink actionListener="#{sucursalBean.agregarSucursal}" update="dialogProyecto" oncomplete="PF('sucursalDialog').show();" title="NUEVA SUCURSAL">
+                        <p:graphicImage width="50" value="/recursos/images/anadir.png" />
+
+                   </p:commandLink>
+                </f:facet>
+            </p:column>
+
+           	<p:column width="25px">
+                      #{row +1}
+        	</p:column>
+
+           <p:column headerText="Nombre" sortBy="#{sucursal.nombre}" filterBy="#{sucursal.nombre}" filterMatchMode="contains">
+                <h:outputText value="#{sucursal.nombre}" />
+           </p:column>
+           
+           <p:column headerText="RUC" sortBy="#{sucursal.ruc}" filterBy="#{sucursal.ruc}" filterMatchMode="contains">
+                <h:outputText value="#{sucursal.ruc}" />
+           </p:column>
+           
+           <p:column headerText="Teléfono" sortBy="#{sucursal.telefono}" filterBy="#{sucursal.telefono}" filterMatchMode="contains">
+                <h:outputText value="#{sucursal.telefono}" />
+           </p:column>
+           
+           <p:column headerText="Dirección" sortBy="#{sucursal.direccion}" filterBy="#{sucursal.direccion}" filterMatchMode="contains">
+                <h:outputText value="#{sucursal.direccion}" />
+           </p:column>
+           
+           <p:column headerText="Empresa" sortBy="#{sucursal.empresa.nombre}" filterBy="#{sucursal.empresa.nombre}" filterMatchMode="contains">
+                <h:outputText value="#{sucursal.empresa.nombre}" />
+           </p:column>
+          
+        </p:dataTable>
+    </h:form>
+    
+    <p:dialog modal="true" dynamic="true" closeOnEscape="true" id="dialogProyecto" header="#{sucursalBean.tituloDialog}" widgetVar="sucursalDialog" resizable="false" closable="true"
+        appendTo="@(body)" style="width:auto">
+        <h:form id="formProyecto">
+            <h:panelGrid id="grid" columns="2">
+            	<h:outputLabel value="Nombre:" />
+                <p:inputText value="#{sucursalBean.sucursalSelected.nombre}" maxlength="45" />
+                
+                <h:outputLabel value="Ruc:" />
+                <p:inputText value="#{sucursalBean.sucursalSelected.ruc}" maxlength="11" />
+                
+                <h:outputLabel value="Telefono:" />
+                <p:inputText value="#{sucursalBean.sucursalSelected.telefono}" maxlength="9" />
+                
+                <h:outputLabel value="Dirección:" />
+                <p:inputText value="#{sucursalBean.sucursalSelected.direccion}" />
+                
+                <h:outputLabel value="Empresa:" />
+                <p:selectOneMenu value="#{sucursalBean.sucursalSelected.empresa}" converter="#{sucursalBean.conversorEmpresa}" style="margin:10px" >
+                    <f:selectItems value="#{sucursalBean.lstEmpresa}" var="prof" itemLabel="#{prof.nombre}" itemValue="#{prof}"/>
+                </p:selectOneMenu>
+                            
+                <h:outputLabel for="estado" value="Estado:" />
+                <p:selectOneMenu id="estado" value="#{sucursalBean.sucursalSelected.estado}" style="margin:10px" >
+                    <f:selectItem itemLabel="Activo" itemValue="#{true}"/>
+                    <f:selectItem itemLabel="Inactivo" itemValue="#{false}"/>
+                </p:selectOneMenu>
+                    <p:commandButton value="Guardar" actionListener="#{sucursalBean.saveSucursal()}" update=":form:idTableSuc"/>
+                    
+            </h:panelGrid>
+            
+        </h:form>
+    </p:dialog>
+   
+</ui:composition>

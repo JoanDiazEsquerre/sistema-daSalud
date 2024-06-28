@@ -1,0 +1,269 @@
+   <ui:composition xmlns="http://www.w3.org/1999/xhtml"
+    xmlns:ui="http://java.sun.com/jsf/facelets"
+    xmlns:h="http://java.sun.com/jsf/html"
+    xmlns:p="http://primefaces.org/ui"
+    xmlns:pe="http://primefaces.org/ui/extensions"
+    locale="#{localeBean.usedLocale}"
+    xmlns:f="http://java.sun.com/jsf/core">
+    
+
+
+    <h:form id="form">
+    	<h2 style="color: #007d4c;">MANTENIMIENTOS > PRODUCTOS</h2>
+     
+    	<p:tabView id="tabView">
+			<p:tab title="Lista de Productos"> 
+				<p:selectOneButton value="#{productoBean.estadoFilter}" unselectable="false">
+		            <f:selectItem itemLabel="Activos" itemValue="#{true}" />
+		            <f:selectItem itemLabel="Inactivos" itemValue="#{false}" />
+		            <p:ajax  update=":form:tabView:idTable" onstart="PF('blockUIWidgetGeneral').block();" oncomplete="PF('blockUIWidgetGeneral').unblock();"/>
+		        </p:selectOneButton>
+		        
+		        <p:selectBooleanCheckbox value="#{productoBean.busquedaStockAlerta}" itemLabel="BUSCAR ALERTA DE STOCK " style="margin-left: 20px"> 
+		        	<p:ajax update=":form:tabView:idTable" onstart="PF('blockUIWidgetGeneral').block();" oncomplete="PF('blockUIWidgetGeneral').unblock();"/>
+		        </p:selectBooleanCheckbox>
+		        
+		         <h:panelGrid columns="2"> 
+		         	<h:outputLabel value="Proveedor Preferencia:" style="margin-left: 10px"/>
+	               	<p:selectOneMenu value="#{productoBean.proveedorFilter}" filter="true" converter="#{productoBean.conversorProveedorPreferencia}" style="margin:5px; width:100%" >
+						<f:selectItem itemLabel="[-NINGUNO-]" value="#{null}"/>
+						<f:selectItems value="#{productoBean.lstProveedorPreferencia}" var="project" itemLabel="#{project.razonSocial}" itemValue="#{project}"/>
+						<p:ajax update="idTable" />
+					</p:selectOneMenu>
+		         </h:panelGrid>
+		        
+		       <p:dataTable reflow="true" var="prod" id="idTable" value="#{productoBean.lstProductoLazy}" widgetVar="usersTable" rowIndexVar="row" paginator="true" rows="15" size="small"
+		            emptyMessage="No se encontraron resultados" style="width: 120%" paginatorPosition="bottom" rowKey="#{prod.id}" selection="#{productoBean.productoSelected}" selectionMode="single">
+		            <f:facet name="header">
+		                <div class="p-d-flex p-ai-center p-jc-between">
+		                    <p:commandButton value="Producto" actionListener="#{productoBean.agregarProducto}" update="dialogProyecto" oncomplete="PF('productoDialog').show();" icon="pi pi-plus-circle" style="margin: 5px"/>
+		                    <p:commandButton value="Familia" update="dialogFamilia" oncomplete="PF('familiaDialog').show();" icon="pi pi-plus-circle" style="margin: 5px"/>
+		                    <p:commandButton value="Princ. Activo" update="dialogPrincipioActivo" oncomplete="PF('principioActivoDialog').show();" icon="pi pi-plus-circle" style="margin: 5px"/>
+		                    <p:commandButton value="Dolencia" update="dialogDolencia" oncomplete="PF('dolenciaDialog').show();" icon="pi pi-plus-circle" style="margin: 5px"/>
+		                </div>
+		            </f:facet>
+		            <p:ajax event="rowSelect" update="dialogProyecto" listener="#{productoBean.modificarProducto}" oncomplete="PF('productoDialog').show();" />
+		
+		           <p:column style="width:42px;text-align: left">
+		                <f:facet name="header">
+		                	<p:commandButton actionListener="#{productoBean.actualizarStockProducto}" onstart="PF('blockUIWidgetGeneral').block();" oncomplete="PF('blockUIWidgetGeneral').unblock();" title="ACTUALIZAR STOCK" icon="pi pi-refresh"/>
+		                </f:facet>
+		            </p:column>
+		
+		           	<p:column width="25px">
+		                      #{row +1}
+		        	</p:column>
+		
+		           <p:column headerText="Descripcion" sortBy="#{prod.descripcion}" filterBy="#{prod.descripcion}" filterMatchMode="contains">
+		                <h:outputText value="#{prod.descripcion}" />
+		           </p:column>
+		           
+		           <p:column headerText="Descripcion Ticket" sortBy="#{prod.descripcionTicket}" filterMatchMode="contains">
+		                <h:outputText value="#{prod.descripcionTicket}" />
+		           </p:column>
+		           
+		           <p:column headerText="Familia" sortBy="#{prod.familia.descripcion}" filterBy="#{prod.familia.descripcion}" filterMatchMode="contains">
+		                <h:outputText value="#{prod.familia.descripcion}" />
+		           </p:column>
+		           
+		           <p:column headerText="Laboratorio" sortBy="#{prod.laboratorio.nombre}" filterBy="#{prod.laboratorio.nombre}" filterMatchMode="contains">
+		                <h:outputText value="#{prod.laboratorio.nombre}" />
+		           </p:column>
+		           
+		           <p:column headerText="Proveedor Preferencia" filterMatchMode="contains">
+		                <h:outputText value="#{prod.proveedorPreferencia.razonSocial}" />
+		           </p:column>
+		           
+		           <p:column headerText="Código Barra" sortBy="#{prod.codigoBarra}" filterBy="#{prod.codigoBarra}" filterMatchMode="contains">
+		                <h:outputText value="#{prod.codigoBarra}" />
+		           </p:column>
+		           
+		           <p:column headerText="Garantía" filterMatchMode="contains">
+		                <h:outputText value="#{prod.garantia ?'SI': 'NO'}" />
+		           </p:column>
+		           
+		           <p:column headerText="Stock Alerta" sortBy="#{prod.stockUnidadAlerta}" filterMatchMode="contains">
+		                <h:outputText value="#{prod.stockUnidadAlerta}" />
+		           </p:column>
+		           
+		           <p:column headerText="Stock Actual(Unid.)" sortBy="#{prod.stockUnidad}" style="color: blue" filterMatchMode="contains">
+		                <h:outputText value="#{prod.stockUnidad}" />
+		           </p:column>
+		           
+		           <p:column headerText="Principio Activo" sortBy="#{prod.principioActivo.nombre}" filterBy="#{prod.principioActivo.nombre}" filterMatchMode="contains">
+		                <h:outputText value="#{prod.principioActivo.nombre}" />
+		           </p:column>
+		           
+		           <p:column headerText="Dolencia" sortBy="#{prod.dolencia.nombre}" filterBy="#{prod.dolencia.nombre}" filterMatchMode="contains">
+		                <h:outputText value="#{prod.dolencia.nombre}" />
+		           </p:column>
+		           
+		           <p:column headerText="Receta Medica" sortBy="#{prod.recetaMedica}" filterMatchMode="contains">
+		                <h:outputText value="#{prod.recetaMedica ?'SI': 'NO'}" />
+		           </p:column>
+		           
+		           <p:column headerText="Tipo Operación" sortBy="#{prod.tipoOperacion}" filterMatchMode="contains">
+		                <h:outputText value="#{prod.tipoOperacion}" />
+		           </p:column>
+		     
+		        </p:dataTable>
+			</p:tab>
+		</p:tabView>
+    </h:form>
+    
+    <p:dialog modal="true" dynamic="true" closeOnEscape="true" id="dialogProyecto" header="#{productoBean.tituloDialog}" widgetVar="productoDialog" resizable="false" closable="true"
+        appendTo="@(body)" style="width:auto">
+        <h:form id="formProducto">
+        	<h:panelGrid columns="8" > 
+        		<h:outputLabel value="Codigo Fábrica:" style="margin-left: 10px"/>
+               	<p:inputText value="#{productoBean.productoSelected.codigoFabrica}" maxlength="45" />
+               	
+               	<h:outputLabel value="Codigo Vidagro:" style="margin-left: 10px"/>
+               	<p:inputText value="#{productoBean.productoSelected.codigoVidagro}" maxlength="45" />
+               	
+               	<h:outputLabel value="Codigo Sunat:" style="margin-left: 10px" />
+               	<p:inputText value="#{productoBean.productoSelected.codigoSunat}" maxlength="45" />
+               	
+               	<h:outputLabel value="Tipo Operación:" style="margin-left: 10px"/>
+               	<p:selectOneMenu value="#{productoBean.productoSelected.tipoOperacion}" >
+                   	<f:selectItem itemLabel="OP. GRAVADA" itemValue="GRAVADA"/>
+                   	<f:selectItem itemLabel="OP. INAFECTA" itemValue="INAFECTA"/>
+                   	<f:selectItem itemLabel="OP. EXONERADA" itemValue="EXONERADA"/>
+               	</p:selectOneMenu>
+               	
+               	<h:outputLabel value="*Familia:" style="margin-left: 10px"/>
+               	<p:autoComplete scrollHeight="300" value="#{productoBean.productoSelected.familia}" dropdown="true" converter="#{productoBean.conversorFamilia}" completeMethod="#{productoBean.completeFamilia}"  
+                         var="fam" itemLabel="#{fam.descripcion}" itemValue="#{fam}" forceSelection="true"  > 
+	            </p:autoComplete>
+	            
+	            <h:outputLabel value="*Laboratorio:" style="margin-left: 10px"/>
+               	<p:autoComplete scrollHeight="300" value="#{productoBean.productoSelected.laboratorio}" dropdown="true" converter="#{productoBean.conversorLaboratorio}" completeMethod="#{productoBean.completeLaboratorio}"  
+                         var="lab" itemLabel="#{lab.nombre}" itemValue="#{lab}" forceSelection="true"  > 
+	            </p:autoComplete>
+	            
+	            <h:outputLabel value="*Descripción:" style="margin-left: 10px" />
+               	<p:inputText value="#{productoBean.productoSelected.descripcion}" maxlength="100" > 
+               		<p:ajax event="blur" listener="#{productoBean.copiarDescripcion}" update="textTicket"/>
+               	</p:inputText>
+               	
+               	<h:outputLabel value="*Descripción Ticket:" style="margin-left: 10px" />
+               	<p:inputText value="#{productoBean.productoSelected.descripcionTicket}" id="textTicket" maxlength="100" />
+	            
+				<h:outputLabel value="Garantía:" style="margin-left: 10px"/>
+				<p:selectOneMenu value="#{productoBean.productoSelected.garantia}" >
+                   	<f:selectItem itemLabel="NO" itemValue="{false}"/>
+                   	<f:selectItem itemLabel="SI" itemValue="#{true}"/>
+               	</p:selectOneMenu>
+               	
+               	<h:outputLabel value="Stock Mínimo:" rendered="false" style="margin-left: 10px"/>
+               	<p:inputNumber decimalSeparator="." thousandSeparator=","  value="#{productoBean.productoSelected.stockMinimo}" rendered="false" modifyValueOnWheel="false" />
+               	
+               	<h:outputLabel value="*Principio Activo:" style="margin-left: 10px"/>
+               	<p:autoComplete scrollHeight="300" value="#{productoBean.productoSelected.principioActivo}" dropdown="true" converter="#{productoBean.conversorPrincipioActivo}" completeMethod="#{productoBean.completePrincipioActivo}"  
+                         var="uni" itemLabel="#{uni.nombre}" itemValue="#{uni}" forceSelection="true"  > 
+	            </p:autoComplete>
+	            
+	            <h:outputLabel value="*Dolencia:" style="margin-left: 10px"/>
+               	<p:autoComplete scrollHeight="300" value="#{productoBean.productoSelected.dolencia}" dropdown="true" converter="#{productoBean.conversorDolencia}" completeMethod="#{productoBean.completeDolencia}"  
+                         var="uni" itemLabel="#{uni.nombre}" itemValue="#{uni}" forceSelection="true"  > 
+	            </p:autoComplete>
+	            
+	            <h:outputLabel value="Receta Médica:" style="margin-left: 10px"/>
+				<p:selectOneMenu value="#{productoBean.productoSelected.recetaMedica}" >
+                   	<f:selectItem itemLabel="NO" itemValue="{false}"/>
+                   	<f:selectItem itemLabel="SI" itemValue="#{true}"/>
+               	</p:selectOneMenu>
+               	
+               	<h:outputLabel value="*Codigo de Barra:" style="margin-left: 10px" />
+               	<p:inputText value="#{productoBean.productoSelected.codigoBarra}" maxlength="100" />
+               	
+               	<h:outputLabel value="Comentario:" style="margin-left: 10px"/>
+               	<p:inputTextarea value="#{productoBean.productoSelected.comentario}" rows="2" cols="25" maxlength="200" autoResize="false"/>
+               	
+               	<h:outputLabel value="Estado:" style="margin-left: 10px"/>
+				<p:selectOneMenu value="#{productoBean.productoSelected.estado}" >
+                   	<f:selectItem itemLabel="NO" itemValue="{false}"/>
+                   	<f:selectItem itemLabel="SI" itemValue="#{true}"/>
+               	</p:selectOneMenu>
+               	
+               	<h:outputLabel value="*Proveedor Preferencia: " style="margin-left: 10px"/>
+               	<p:autoComplete scrollHeight="300" value="#{productoBean.productoSelected.proveedorPreferencia}" dropdown="true" converter="#{productoBean.conversorProveedorPreferencia}" completeMethod="#{productoBean.completeProveedor}"  
+                         var="proveedor" itemLabel="#{proveedor.razonSocial}" itemValue="#{proveedor}" forceSelection="true"  > 
+	            </p:autoComplete>
+	            
+	            <h:outputLabel value="Stock Alerta: " style="margin-left: 10px"/>
+               	<p:inputNumber decimalSeparator="." thousandSeparator=","  value="#{productoBean.productoSelected.stockUnidadAlerta}" modifyValueOnWheel="false" />
+	            
+        	</h:panelGrid>
+          
+            <p:commandButton value="GUARDAR" actionListener="#{productoBean.saveProducto}" update=":form:tabView:idTable"/>
+            
+        </h:form>
+    </p:dialog>
+    
+    
+    
+    <p:dialog modal="true" dynamic="true" closeOnEscape="true" id="dialogFamilia" header="NUEVA FAMILIA" widgetVar="familiaDialog" resizable="false" closable="true"
+        appendTo="@(body)" style="width:auto">
+        <h:form id="formFamilia">
+            <h:panelGrid id="grid" columns="2">
+            	<h:outputLabel value="Nombre:" />
+                <p:inputText value="#{productoBean.familiaNew.descripcion}" maxlength="100" />
+                            
+                <h:outputLabel value="Estado:" />
+                <p:selectOneMenu value="#{productoBean.familiaNew.estado}" style="margin:10px" >
+                    <f:selectItem itemLabel="Activo" itemValue="#{true}"/>
+                    <f:selectItem itemLabel="Inactivo" itemValue="#{false}"/> 
+                </p:selectOneMenu>
+                    
+                <p:commandButton value="Guardar" actionListener="#{productoBean.saveFamilia()}"/>
+            </h:panelGrid>
+        </h:form>
+    </p:dialog>
+    
+    <p:dialog modal="true" dynamic="true" closeOnEscape="true" id="dialogPrincipioActivo" header="NUEVO PRINCIPIO ACTIVO" widgetVar="principioActivoDialog" resizable="false" closable="true"
+        appendTo="@(body)" style="width:auto">
+        <h:form id="formPrincipioActivo">
+            <h:panelGrid id="grid" columns="2">
+            	<h:outputLabel value="Nombre:" />
+                <p:inputText value="#{productoBean.principioActivoNew.nombre}" maxlength="100" />
+                            
+                <h:outputLabel value="Estado:" />
+                <p:selectOneMenu value="#{productoBean.principioActivoNew.estado}" style="margin:10px" >
+                    <f:selectItem itemLabel="Activo" itemValue="#{true}"/>
+                    <f:selectItem itemLabel="Inactivo" itemValue="#{false}"/> 
+                </p:selectOneMenu>
+                    
+                <p:commandButton value="Guardar" actionListener="#{productoBean.savePrincipioActivo()}"/>
+                    
+            </h:panelGrid>
+            
+        </h:form>
+    </p:dialog>
+    
+    <p:dialog modal="true" dynamic="true" closeOnEscape="true" id="dialogDolencia" header="NUEVA DOLENCIA" widgetVar="dolenciaDialog" resizable="false" closable="true"
+        appendTo="@(body)" style="width:auto">
+        <h:form id="formDolencia">
+            <h:panelGrid id="grid" columns="2">
+            	<h:outputLabel value="Nombre:" />
+                <p:inputText value="#{productoBean.dolenciaNew.nombre}" maxlength="100" />
+                            
+                <h:outputLabel value="Estado:" />
+                <p:selectOneMenu value="#{productoBean.dolenciaNew.estado}" style="margin:10px" >
+                    <f:selectItem itemLabel="Activo" itemValue="#{true}"/>
+                    <f:selectItem itemLabel="Inactivo" itemValue="#{false}"/> 
+                </p:selectOneMenu>
+                    
+                <p:commandButton value="Guardar" actionListener="#{productoBean.saveDolencia()}"/>
+                    
+            </h:panelGrid>
+        </h:form>
+    </p:dialog>
+    
+    <pe:blockUI widgetVar="blockUIWidgetGeneral">
+          <h:form style="background: white"> 
+          <h:outputText value="Cargando, espere..." style="white-space: nowrap; font-weight:bold; color: #036fab; background: white"/> 
+          </h:form>
+    </pe:blockUI>
+   
+</ui:composition>

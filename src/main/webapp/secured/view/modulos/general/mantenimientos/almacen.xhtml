@@ -1,0 +1,75 @@
+   <ui:composition xmlns="http://www.w3.org/1999/xhtml"
+    xmlns:ui="http://java.sun.com/jsf/facelets"
+    xmlns:h="http://java.sun.com/jsf/html"
+    xmlns:p="http://primefaces.org/ui"
+    xmlns:pe="http://primefaces.org/ui/extensions"
+    locale="#{localeBean.usedLocale}"
+    xmlns:f="http://java.sun.com/jsf/core">
+
+    <h:form id="form">
+    	<h2 style="color: #007d4c;">MANTENIMIENTOS > ALMACEN</h2>
+        <p:selectOneButton value="#{almacenBean.estadoFilter}" unselectable="false">
+            <f:selectItem itemLabel="Activos" itemValue="#{true}" />
+            <f:selectItem itemLabel="Inactivos" itemValue="#{false}" />
+            <p:ajax update=":form:idTableAlm" />
+        </p:selectOneButton>
+
+       <p:dataTable reflow="true" var="alm" id="idTableAlm" value="#{almacenBean.lstAlmacenLazy}" widgetVar="usersTable" rowIndexVar="row" paginator="true" rows="15" size="small"
+            emptyMessage="No se encontraron resultados" paginatorPosition="bottom" rowKey="#{alm.id}" selection="#{almacenBean.almacenSelected}" selectionMode="single">
+            <f:facet name="header">
+                <div class="p-d-flex p-ai-center p-jc-between">
+                    <span>Lista de Sucursales</span>
+                </div>
+            </f:facet>
+            <p:ajax event="rowSelect" update="dialogProyecto" listener="#{almacenBean.modificarAlmacen}" oncomplete="PF('almacenDialog').show();" />
+
+           <p:column style="width:42px;text-align: left">
+                <f:facet name="header">
+                    <p:commandLink actionListener="#{almacenBean.agregarAlmacen}" update="dialogProyecto" oncomplete="PF('almacenDialog').show();" title="NUEVO ALMACÉN">
+                        <p:graphicImage width="50" value="/recursos/images/anadir.png" />
+
+                   </p:commandLink>
+                </f:facet>
+            </p:column>
+
+           	<p:column width="25px">
+                      #{row +1}
+        	</p:column>
+
+           <p:column headerText="Sucursal" sortBy="#{alm.sucursal.nombre}" filterBy="#{alm.sucursal.nombre}" filterMatchMode="contains">
+                <h:outputText value="#{alm.sucursal.nombre}" />
+           </p:column>
+           
+           <p:column headerText="Descripcion" sortBy="#{alm.descripcion}" filterBy="#{alm.descripcion}" filterMatchMode="contains">
+                <h:outputText value="#{alm.descripcion}" />
+           </p:column>
+          
+        </p:dataTable>
+    </h:form>
+    
+    <p:dialog modal="true" dynamic="true" closeOnEscape="true" id="dialogProyecto" header="#{almacenBean.tituloDialog}" widgetVar="almacenDialog" resizable="false" closable="true"
+        appendTo="@(body)" style="width:auto">
+        <h:form id="formProyecto">
+            <h:panelGrid id="grid" columns="2">
+				<h:outputLabel value="Sucursal:" />
+                <p:selectOneMenu value="#{almacenBean.almacenSelected.sucursal}" converter="#{almacenBean.conversorSucursal}" style="margin:10px" >
+                    <f:selectItems value="#{almacenBean.lstSucursal}" var="prof" itemLabel="#{prof.nombre}" itemValue="#{prof}"/>
+                </p:selectOneMenu>            
+            
+            	<h:outputLabel value="Descripción:" />
+                <p:inputText value="#{almacenBean.almacenSelected.descripcion}" maxlength="45" />
+                            
+                <h:outputLabel for="estado" value="Estado:" />
+                <p:selectOneMenu id="estado" value="#{almacenBean.almacenSelected.estado}" style="margin:10px" >
+                    <f:selectItem itemLabel="Activo" itemValue="#{true}"/>
+                    <f:selectItem itemLabel="Inactivo" itemValue="#{false}"/>
+                </p:selectOneMenu>
+                    
+                <p:commandButton value="Guardar" actionListener="#{almacenBean.saveAlmacen()}" update=":form:idTableAlm"/>
+                    
+            </h:panelGrid>
+            
+        </h:form>
+    </p:dialog>
+   
+</ui:composition>

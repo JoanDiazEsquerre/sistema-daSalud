@@ -1,0 +1,81 @@
+   <ui:composition xmlns="http://www.w3.org/1999/xhtml"
+    xmlns:ui="http://java.sun.com/jsf/facelets"
+    xmlns:h="http://java.sun.com/jsf/html"
+    xmlns:p="http://primefaces.org/ui"
+    xmlns:pe="http://primefaces.org/ui/extensions"
+    locale="#{localeBean.usedLocale}"
+    xmlns:f="http://java.sun.com/jsf/core">
+
+    <h:form id="form">
+    	<h2 style="color: #007d4c;">MANTENIMIENTOS > FAMILIAS</h2>
+    	
+    	<h:panelGrid  columns="2" >	
+    	
+    		<p:selectOneButton value="#{familiaBean.estadoFilter}" unselectable="false">
+	            <f:selectItem itemLabel="Activos" itemValue="#{true}" />
+	            <f:selectItem itemLabel="Inactivos" itemValue="#{false}" />
+	            <p:ajax update=":form:idTableAlm" />
+	        </p:selectOneButton>
+	        
+	        <p:commandButton  value="Descargar" ajax="false" onclick="PrimeFaces.monitorDownload(start, stop); PF('blockUIWidgetGeneral').block();" actionListener="#{familiaBean.procesarExcel}" oncomplete="PF('blockUIWidgetGeneral').unblock();" icon="pi pi-file-excel" styleClass="mr-2">
+	           <p:fileDownload value="#{familiaBean.fileDes}"/> 
+	      	</p:commandButton>
+    	
+    	</h:panelGrid>
+    	
+        
+
+       <p:dataTable reflow="true" var="alm" id="idTableAlm" value="#{familiaBean.lstFamiliaLazy}" widgetVar="usersTable" rowIndexVar="row" paginator="true" rows="15" size="small"
+            emptyMessage="No se encontraron resultados" paginatorPosition="bottom" rowKey="#{alm.id}" selection="#{familiaBean.familiaSelected}" selectionMode="single">
+            <f:facet name="header">
+                <div class="p-d-flex p-ai-center p-jc-between">
+                    <span>Lista de Familias</span>
+                </div>
+            </f:facet>
+            <p:ajax event="rowSelect" update="dialogProyecto" listener="#{familiaBean.modificarFamilia}" oncomplete="PF('familiaDialog').show();" />
+
+           <p:column style="width:42px;text-align: left">
+                <f:facet name="header">
+                    <p:commandLink actionListener="#{familiaBean.agregarFamilia}" update="dialogProyecto" oncomplete="PF('familiaDialog').show();" title="NUEVO ALMACÉN">
+                        <p:graphicImage width="50" value="/recursos/images/anadir.png" />
+
+                   </p:commandLink>
+                </f:facet>
+            </p:column>
+
+           	<p:column width="25px">
+                      #{row +1}
+        	</p:column>
+           
+           <p:column headerText="Descripcion" sortBy="#{alm.desripcion}" filterBy="#{alm.descripcion}" filterMatchMode="contains">
+                <h:outputText value="#{alm.descripcion}" />
+           </p:column>
+          
+        </p:dataTable>
+    </h:form>
+    
+    <p:dialog modal="true" dynamic="true" closeOnEscape="true" id="dialogProyecto" header="#{familiaBean.tituloDialog}" widgetVar="familiaDialog" resizable="false" closable="true"
+        appendTo="@(body)" style="width:auto">
+        <h:form id="formProyecto">
+            <h:panelGrid id="grid" columns="2">
+            	<h:outputLabel value="Nombre:" />
+                <p:inputText value="#{familiaBean.familiaSelected.descripcion}" maxlength="100" />
+                            
+                <h:outputLabel for="estado" value="Estado:" />
+                <p:selectOneMenu id="estado" value="#{familiaBean.familiaSelected.estado}" style="margin:10px" >
+                    <f:selectItem itemLabel="Activo" itemValue="#{true}"/>
+                    <f:selectItem itemLabel="Inactivo" itemValue="#{false}"/> 
+                </p:selectOneMenu>
+                    
+                <p:commandButton value="Guardar" actionListener="#{familiaBean.saveFamilia()}" update=":form:idTableAlm"/>
+            </h:panelGrid>
+        </h:form>
+    </p:dialog>
+    
+    <pe:blockUI widgetVar="blockUIWidgetGeneral">
+          <h:form style="background: white"> 
+          <h:outputText value="Cargando, espere..." style="white-space: nowrap; font-weight:bold; color: #036fab; background: white"/> 
+          </h:form>
+    </pe:blockUI>
+   
+</ui:composition>

@@ -1,0 +1,1091 @@
+<ui:composition xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:ui="http://java.sun.com/jsf/facelets"
+	xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:p="http://primefaces.org/ui"
+	xmlns:pe="http://primefaces.org/ui/extensions"
+	locale="#{localeBean.usedLocale}"
+	xmlns:f="http://java.sun.com/jsf/core">
+
+ 
+	<h:form id="form" enctype="multipart/form-data">
+		<p:growl id="msgs" showDetail="true"/>
+		<h2 style="color: #007d4c;">VENTAS > DOCUMENTO DE VENTA</h2>
+		
+		<p:tabView id="tabView">  
+			<p:tab title="Lista de Documentos de Venta" id="tabListDoc">
+				<p:selectOneButton value="#{documentoVentaBean.estado}"
+					unselectable="false">
+					<f:selectItem itemLabel="Activos" itemValue="#{true}" />
+					<f:selectItem itemLabel="Anulados" itemValue="#{false}" />
+					<p:ajax update=":form:tabView:idTableListDoc" onstart="PF('blockUIWidgetGeneral').block();" oncomplete="PF('blockUIWidgetGeneral').unblock();"/>
+				</p:selectOneButton>
+				
+				<p:selectOneButton value="#{documentoVentaBean.estadoSunat}" unselectable="false" style="margin-left:40px">
+					<f:selectItem itemLabel="Todos" itemValue="#{null}" />
+					<f:selectItem itemLabel="Pendientes" itemValue="#{false}" />
+					<f:selectItem itemLabel="Enviados" itemValue="#{true}" />
+					<p:ajax update=":form:tabView:idTableListDoc" listener="#{documentoVentaBean.iniciarLazy()}" onstart="PF('blockUIWidgetGeneral').block();" oncomplete="PF('blockUIWidgetGeneral').unblock();" />
+				</p:selectOneButton>
+				
+				<p:commandButton  value="Descargar" ajax="false" onclick="PrimeFaces.monitorDownload(start, stop); PF('blockUIWidgetGeneral').block();" actionListener="#{documentoVentaBean.procesarExcel}" 
+						oncomplete="PF('blockUIWidgetGeneral').unblock();" icon="pi pi-file-excel" styleClass="mr-2" style="margin-left:40px">
+		           <p:fileDownload value="#{documentoVentaBean.fileDes}"/> 
+		      	</p:commandButton>
+
+				<p:dataTable var="documento" id="idTableListDoc" value="#{documentoVentaBean.lstDocumentoVentaLazy}" rowIndexVar="row" paginator="true" rows="15" size="small" 
+					rowStyleClass="#{documento.pendientePago eq true ? 'old' : null}" emptyMessage="No se encontraron documentos de venta." style="width: 120%;" paginatorPosition="bottom" 
+					rowKey="#{documento.id}" selection="#{documentoVentaBean.documentoVentaSelected}" selectionMode="single">
+
+					<f:facet name="header">
+						<div class="p-d-flex p-ai-center p-jc-between">
+							<span>Lista de Documentos de ventas</span>
+						</div>
+					</f:facet>
+					
+<!-- 					<p:ajax event="rowSelect" listener="#{documentoVentaBean.listarDetalleDocumentoVenta()}" update=":formDocumentoVentaDialog :dialogDocumentoVenta" onstart="PF('blockUIWidgetGeneral').block();" oncomplete="PF('blockUIWidgetGeneral').unblock(); PF('docVentDialog').show();" /> -->
+					<p:ajax event="rowSelect" listener="#{documentoVentaBean.listarDetalleDocumentoVenta()}" update=":formDocumentoVentaDialog :dialogDocumentoVenta" onstart="PF('blockUIWidgetGeneral').block();" oncomplete="PF('blockUIWidgetGeneral').unblock(); PF('docVentDialog').show();" />
+
+					<p:column width="25px">
+			                      #{row +1}
+			        </p:column>
+			        
+			        <p:column headerText="Tipo Comprobante" filterMatchMode="contains" style="margin:5px; width:100px">
+						<f:facet name="header">
+							Tipo Documento
+				        	<p:selectOneMenu value="#{documentoVentaBean.tipoDocumentoFilter}" converter="#{documentoVentaBean.conversorTipoDocumentoSunat}" style="margin:5px;width:100%" >
+								<f:selectItem itemLabel="TODOS" value="#{null}"/>
+								<f:selectItems value="#{documentoVentaBean.lstTipoDocumentoEnvioSunat}" var="tipoDocumento" itemLabel="#{tipoDocumento.descripcion}" itemValue="#{tipoDocumento}"/>
+								<p:ajax update=":form:tabView:idTableListDoc" listener="#{documentoVentaBean.iniciarLazy()}" onstart="PF('blockUIWidgetGeneral').block();" oncomplete="PF('blockUIWidgetGeneral').unblock();" />
+							</p:selectOneMenu>
+						</f:facet>
+						<h:outputText value="#{documento.tipoDocumento.descripcion}" />
+					</p:column>
+
+					<p:column headerText="Cliente(Razón social)" sortBy="#{documento.razonSocial}" filterBy="#{documento.razonSocial}" style="width: 200px" filterMatchMode="contains">
+						<h:outputText value="#{documento.razonSocial}" />
+					</p:column>
+					
+					<p:column headerText="RUC/DNI" sortBy="#{documento.ruc}" style="text-align:center; width: 150px;" filterBy="#{documento.ruc}" filterMatchMode="contains">
+						<h:outputText value="#{documento.ruc}" />
+					</p:column>
+
+					
+
+					<p:column headerText="Número" sortBy="#{documento.numero}" filterBy="#{documento.numero}" style="width: 150px;" filterMatchMode="contains">
+						<h:outputText value="#{documento.serie}-#{documento.numero}" />
+					</p:column>
+
+					
+					<p:column headerText="Dirección" filterMatchMode="contains" width="300px">
+						<h:outputText value="#{documento.direccion}" />
+					</p:column>
+
+					<p:column headerText="Fecha Emision" sortBy="#{documento.fechaEmision}" style="text-align:center;width: 100px;" filterMatchMode="contains">
+						<h:outputText value="#{documento.fechaEmision}">
+							<f:convertDateTime pattern="dd/MM/yyyy" />
+						</h:outputText>
+					</p:column>
+					<p:column headerText="Fecha Vencimiento" sortBy="#{documento.fechaVencimiento}" style="text-align:center;width: 100px;" filterMatchMode="contains">
+						<h:outputText value="#{documento.fechaVencimiento}">
+							<f:convertDateTime pattern="dd/MM/yyyy" />
+						</h:outputText>
+					</p:column>
+
+					<p:column headerText="Tipo Moneda" filterMatchMode="contains" style="text-align:center;width:50px;">
+						<h:outputText value="#{documento.tipoMoneda eq 'S'?'Soles':'Dólares'}" />
+					</p:column>
+
+					<p:column headerText="Condición Pago" sortBy="#{documento.condicionPago.nombre}" filterMatchMode="contains" style="text-align:center;width: 70px;">
+						<h:outputText value="#{documento.condicionPago.nombre}" />
+					</p:column>
+
+					<p:column headerText="SubTotal" filterMatchMode="contains" style="text-align:center;" rendered="false">
+						<h:outputText value="#{documento.subTotal}" > 
+							<f:convertNumber type="currency" currencySymbol=""/>
+						</h:outputText>
+					</p:column>
+
+					<p:column headerText="IGV" filterMatchMode="contains" style="text-align:center;" rendered="false">
+						<h:outputText value="#{documento.igv}" > 
+							<f:convertNumber type="currency" currencySymbol=""/>
+						</h:outputText>
+					</p:column>
+
+					<p:column headerText="Total" filterMatchMode="contains" style="text-align:center;width: 100px;">
+						<h:outputText value="#{documento.total}" > 
+							<f:convertNumber type="currency" currencySymbol=""/>
+						</h:outputText>
+					</p:column>
+					<p:column headerText="Enviado SUNAT" sortBy="#{documento.envioSunat}" filterMatchMode="contains" style="text-align:center;width: 70px;">
+						<h:outputText value="#{documento.envioSunat?'SI': 'NO'}" style="font-weight: bolder;color:#{documento.envioSunat?'red': 'black'}" />
+					</p:column>
+					
+					<p:column headerText="Doc. Ref." sortBy="#{documento.documentoVentaRef.numero}" filterMatchMode="contains" style="width: 150px;">
+						<h:outputText value="#{documento.documentoVentaRef.serie}-#{documento.documentoVentaRef.numero}" />
+					</p:column>
+					
+					<p:column headerText="Número de Referencia" filterMatchMode="contains" style="width: 150px;">
+						<h:outputText value="#{documento.numeroReferencia}" />
+					</p:column>
+					
+					<p:column headerText="Número de Aprobación" filterMatchMode="contains" style="width: 150px;">
+						<h:outputText value="#{documento.numeroAprobacion}" />
+					</p:column>
+
+					<p:column headerText="Fecha Registro" filterMatchMode="contains" style="text-align:center;width: 100px;">
+						<h:outputText value="#{documentoVentaBean.convertirHoraFull(documento.fechaRegistro)}"/>
+						
+					</p:column>
+
+					<p:column headerText="Usuario Registro"	sortBy="#{documento.usuarioRegistro.username}" filterMatchMode="contains" style="text-align:center;width: 100px;">
+						<h:outputText value="#{documento.usuarioRegistro.username}" />
+					</p:column>
+				
+				</p:dataTable>
+				
+				<p:contextMenu id="menuTableDoc" for="idTableListDoc" >
+		            <p:menuitem value="Cobrar Crédito" icon="pi pi-dollar" action="#{documentoVentaBean.validaCobrarCredito()}"  />
+		            <p:menuitem value="Generar Nota Crédito/Débito" action="#{documentoVentaBean.listarSerieNota()}" icon="pi pi-wallet" update="dialogNotaCreditoDebito"/>
+		            <p:menuitem value="Anular" icon="pi pi-trash" oncomplete="PF('anulaDocumento').show()"  />
+		        </p:contextMenu>
+		        
+		        
+		        <p:panel header="Enviar a SUNAT" style="margin: 20px; width: 40%">
+			        <h:panelGrid columns="5">
+			        	<h:outputLabel value="Tipo Documento:" />
+			        	<p:selectOneMenu value="#{documentoVentaBean.tipoDocumentoEnvioSunat}" converter="#{documentoVentaBean.conversorTipoDocumentoSunat}" style="margin:5px; width:100px" >
+							<f:selectItems value="#{documentoVentaBean.lstTipoDocumentoEnvioSunat}" var="tipoDocumento" itemLabel="#{tipoDocumento.descripcion}" itemValue="#{tipoDocumento}"/>
+						</p:selectOneMenu>
+						
+						<h:outputLabel value="Fecha:" />
+						<p:datePicker value="#{documentoVentaBean.fechaEnvioSunat}" />
+						<p:commandButton value="Enviar" action="#{documentoVentaBean.enviarDocumentoSunatMasivo}" update=":form:tabView:idTableListDoc" 
+							onstart="PF('blockUIWidgetGeneral').block();" oncomplete="PF('blockUIWidgetGeneral').unblock();"/>
+			        
+			        </h:panelGrid>
+			    </p:panel>
+		
+			</p:tab>
+			
+			<p:tab title="Nuevo Documento de Venta">
+				<h:panelGrid columns="9" id="gridNuevoDoc">
+
+					<h:outputLabel value="Fecha: " />
+					<p:datePicker id="fecha" value="#{documentoVentaBean.fechaEmision}" style="margin:5px;">
+						<p:ajax update="txt_fecha_Formated, fecha" listener="#{documentoVentaBean.validacionFecha}" />
+					</p:datePicker>
+
+					<h:outputText style="font-size: 22px; font-weight: bold; color: #547E11;" id="txt_fecha_Formated" value="#{documentoVentaBean.fechaEmision}">
+						<f:convertDateTime pattern="EEEEE, dd MMMM yyyy" />
+					</h:outputText>
+
+					<h:outputLabel value="Documento:" />
+					<p:selectOneMenu id="idTipoComprobante" value="#{documentoVentaBean.tipoDocumentoSelected}" converter="#{documentoVentaBean.conversorTipoDocumento}" style="margin:5px; width:100px" >
+						<f:selectItems value="#{documentoVentaBean.lstTipoDocumento}" var="tipoDocumento" itemLabel="#{tipoDocumento.descripcion}" itemValue="#{tipoDocumento}"/>
+						<p:ajax listener="#{documentoVentaBean.listarSerie}" update=":form:tabView:optionSerie :form:tabView:num :form:tabView:pnl"/>
+					</p:selectOneMenu>
+					
+					
+					<h:outputLabel value="Serie-Número:" />
+
+					<p:selectOneMenu id="optionSerie" value="#{documentoVentaBean.serieDocumentoSelected}" converter="#{documentoVentaBean.conversorSerie}" style="margin:10px">
+						<f:selectItems value="#{documentoVentaBean.lstSerieDocumento}" var="serie" itemLabel="#{serie.serie}" itemValue="#{serie}" />
+						<p:ajax listener="#{documentoVentaBean.cambiarSerie}" update=":form:tabView:num" /> 
+					</p:selectOneMenu>
+					<p:outputLabel value="-" style="font-weight: bolder"/>
+					<p:inputText value="#{documentoVentaBean.numero}"  style="margin:10px" id="num" disabled="true"/>
+
+				</h:panelGrid>
+				
+				<h:panelGrid id="gridImpCuota">   
+					<p:dataTable reflow="true" var="pre" id="idTable" value="#{documentoVentaBean.lstPresentacionLazy}" widgetVar="usersTable" rowIndexVar="row" paginator="true" rows="7" size="small"
+		            emptyMessage="No se encontraron resultados" style="width: 100%; font-size: 14px" selection="#{documentoVentaBean.presentacionSelected}" selectionMode="single" paginatorPosition="bottom" rowKey="#{pre.id}">
+		            <f:facet name="header">
+		                <div class="p-d-flex p-ai-center p-jc-between">
+		                
+		                </div>
+		            </f:facet>
+		
+		           <p:column style="width:42px;text-align: left">
+		                <f:facet name="header">
+		                
+		                </f:facet>
+		            </p:column>
+		
+		           	<p:column width="25px">
+		                      #{row +1}
+		        	</p:column>
+		
+		           <p:column headerText="Descripcion" sortBy="#{pre.producto.descripcion}" filterBy="#{pre.producto.descripcion}" filterMatchMode="contains">
+		                <h:outputText value="#{pre.producto.descripcion}" />
+		           </p:column>
+		           
+		           <p:column headerText="Descripcion Ticket" sortBy="#{pre.producto.descripcionTicket}" filterMatchMode="contains">
+		                <h:outputText value="#{pre.producto.descripcionTicket}" />
+		           </p:column>
+		           
+		           <p:column headerText="Familia" sortBy="#{pre.producto.familia.descripcion}" filterBy="#{pre.producto.familia.descripcion}" filterMatchMode="contains">
+		                <h:outputText value="#{pre.producto.familia.descripcion}" />
+		           </p:column>
+		           
+		           <p:column headerText="Laboratorio" sortBy="#{pre.laboratorio.nombre}" filterBy="#{pre.laboratorio.nombre}" filterMatchMode="contains">
+		                <h:outputText value="#{pre.laboratorio.nombre}" />
+		           </p:column>
+		           
+		           <p:column headerText="Número Lote" sortBy="#{pre.numeroLote}" filterBy="#{pre.numeroLote}" filterMatchMode="contains">
+		                <h:outputText value="#{pre.numeroLote}" />
+		           </p:column>
+		           
+		           <p:column headerText="Código" sortBy="#{pre.codigo}" filterBy="#{pre.codigo}" filterMatchMode="contains">
+		                <h:outputText value="#{pre.codigo}" />
+		           </p:column>
+		           
+		           <p:column headerText="Unidad Medida" sortBy="#{pre.unidadMedida.nombre}" filterMatchMode="contains" style="text-align: center;">
+		                <h:outputText value="#{pre.unidadMedida.nombre}" />
+		           </p:column>
+		           
+		           <p:column headerText="Número Bultos" sortBy="#{pre.cantidadBulto}" filterMatchMode="contains" style="text-align: center;">
+		                <h:outputText value="#{pre.cantidadBulto}" />
+		           </p:column>
+		           
+		           <p:column headerText="Unidades Por Bulto" sortBy="#{pre.unidadPorBulto}" filterMatchMode="contains" style="text-align: center;">
+		                <h:outputText value="#{pre.unidadPorBulto}" />
+		           </p:column>
+		           
+		           <p:column headerText="Fraccionar" filterMatchMode="contains" style="text-align: center;">
+		                <h:outputText value="#{pre.fraccionar ? pre.numeroFraccion : 'NO'}" />
+		           </p:column>
+		           
+		           <p:column headerText="Stock Actual(Unid.)" sortBy="#{pre.stockUnidad}" style="color: blue;text-align: center;" filterMatchMode="contains">
+		                <h:outputText value="#{pre.stockUnidad}" />
+		           </p:column>
+		           
+		           <p:column headerText="Precio Compra" filterMatchMode="contains" style="text-align: center;">
+		                <h:outputText value="#{pre.precioCompra}" />
+		           </p:column>
+		           
+		           <p:column headerText="Principio Activo" sortBy="#{pre.producto.principioActivo.nombre}" filterBy="#{pre.producto.principioActivo.nombre}" filterMatchMode="contains">
+		                <h:outputText value="#{pre.producto.principioActivo.nombre}" />
+		           </p:column>
+		           
+		           <p:column headerText="Dolencia" sortBy="#{pre.producto.dolencia.nombre}" filterBy="#{pre.producto.dolencia.nombre}" filterMatchMode="contains">
+		                <h:outputText value="#{pre.producto.dolencia.nombre}" />
+		           </p:column>
+		           
+		           <p:column headerText="Precio Bulto" filterMatchMode="contains" style="text-align: center;">
+		                <h:outputText value="#{pre.precioBulto}" />            
+		                <p:commandButton icon="pi pi-plus" action="#{documentoVentaBean.agregarBultoProducto}" onstart="PF('blockUIWidgetGeneral').block();" oncomplete="PF('blockUIWidgetGeneral').unblock();" update=":form:tabView:idTableListDoc :form:tabView:idTableDetalleDocVenta :form:tabView:gridMontos :form:tabView:pnl :form:tabView:pnlCond" process="@this" rendered="#{pre.precioBulto gt 0}" style="margin-left: 5px"> 
+		                	<f:setPropertyActionListener value="#{pre}" target="#{documentoVentaBean.presentacionSelected}" />
+		                </p:commandButton>
+		           </p:column>
+		           
+		           <p:column headerText="Precio Fracción" filterMatchMode="contains" style="text-align: center;">
+		                <h:outputText value="#{pre.precioFraccion}" />
+		                <p:commandButton icon="pi pi-plus" action="#{documentoVentaBean.agregarFraccionProducto}" onstart="PF('blockUIWidgetGeneral').block();" oncomplete="PF('blockUIWidgetGeneral').unblock();" update=":form:tabView:idTableListDoc :form:tabView:idTableDetalleDocVenta :form:tabView:gridMontos :form:tabView:pnl :form:tabView:pnlCond" process="@this" rendered="#{pre.precioFraccion gt 0}" style="margin-left: 5px"> 
+		                	<f:setPropertyActionListener value="#{pre}" target="#{documentoVentaBean.presentacionSelected}" />
+		                </p:commandButton>
+		                
+		           </p:column>
+		           
+		           <p:column headerText="Precio Unidad" filterMatchMode="contains"  style="text-align: center;">
+		                <h:outputText value="#{pre.precioUnidad}" />
+		               	<p:commandButton icon="pi pi-plus" action="#{documentoVentaBean.agregarUnidadProducto}" onstart="PF('blockUIWidgetGeneral').block();" oncomplete="PF('blockUIWidgetGeneral').unblock();" update=":form:tabView:idTableListDoc :form:tabView:idTableDetalleDocVenta :form:tabView:gridMontos :form:tabView:pnl :form:tabView:pnlCond" process="@this" rendered="#{pre.precioUnidad gt 0}" style="margin-left: 5px"> 
+		                	<f:setPropertyActionListener value="#{pre}" target="#{documentoVentaBean.presentacionSelected}" />
+		               	</p:commandButton>
+		           </p:column>
+		           
+		           <p:column headerText="Tipo Operación" sortBy="#{pre.producto.tipoOperacion}" filterMatchMode="contains">
+		                <h:outputText value="#{pre.producto.tipoOperacion}" />
+		           </p:column>
+		     
+		        </p:dataTable>
+				</h:panelGrid>
+
+				
+				<h:panelGrid style="width:60%;float:left" columns="1" > 
+					<p:panel id="pnl" header="Datos del Cliente" toggleable="true" toggleSpeed="500" widgetVar="panelDatos" style="width:100%">
+						<h:panelGrid styleClass="companyHeaderGrid" >				
+							<p:row>
+								<p:column>
+									<h:outputLabel value="BUSCAR: "/>
+								</p:column>
+								<p:column>
+									<p:autoComplete  scrollHeight="500" styleClass="ui-autocompV" value="#{documentoVentaBean.clienteSelected}" converter="#{documentoVentaBean.conversorCliente}" completeMethod="#{documentoVentaBean.completeCliente}"  
+						                  var="cli" itemLabel="#{cli.dniRuc}" itemValue="#{cli}" forceSelection="true" style="margin:5px;" >
+						            	<p:column width="400px">
+						                	<h:outputLabel value="#{cli.dniRuc}"/> 
+						                </p:column>
+						                <p:column width="400px">
+						                	<h:outputLabel value="#{cli.razonSocial}" /> 
+						                </p:column> 
+						                <p:ajax event="change" listener="#{documentoVentaBean.onChangeCliente}" update=":form:tabView:pnl" />						                						              
+						            </p:autoComplete>
+								</p:column>
+							</p:row>
+								
+								
+							<p:row>
+								<p:column>
+									<h:outputText value="RUC: " rendered="#{documentoVentaBean.tipoDocumentoSelected.abreviatura eq 'F'}" />
+									<h:outputText value="DNI: " rendered="#{documentoVentaBean.tipoDocumentoSelected.abreviatura eq 'B'}" />
+								</p:column>
+								<p:column>
+									
+								</p:column>
+									<p:inputText value="#{documentoVentaBean.numeroDocumentoText}" > 
+										<p:ajax event="blur" listener="#{documentoVentaBean.buscar}" update=":form:tabView:pnl"/>
+									</p:inputText>
+								<p:column>
+									<h:outputText style="margin-left:20px" value="Nombre: " rendered="#{documentoVentaBean.tipoDocumentoSelected.abreviatura eq 'B'}" />
+									<h:outputText style="margin-left:20px" value="Razón Social: " rendered="#{documentoVentaBean.tipoDocumentoSelected.abreviatura eq 'F'}" />
+								</p:column>
+								<p:column>
+									<p:inputText id="txt_nombre" style="width:420px;" label="" value="#{documentoVentaBean.razonSocialText}" maxlength="100" /> 
+								</p:column>
+
+							</p:row>
+							<p:row>
+								<p:column>
+									<h:outputText value="Dirección: " />
+								</p:column>
+								<p:column colspan="3">
+									<p:inputText id="txt_direccion" style="width:800px;" label="" value="#{documentoVentaBean.direccionText}" maxlength="200" />
+								</p:column>
+
+							</p:row>
+							<p:row>
+								<p:column>
+									<h:outputText value="E-mail 1: " />
+								</p:column>
+								<p:column colspan="3">
+									<p:inputText style="width:800px;" label="" value="#{documentoVentaBean.email1Text}" />
+								</p:column>
+
+							</p:row>
+							<p:row>
+								<p:column>
+									<h:outputText value="E-mail 2: " />
+								</p:column>
+								<p:column colspan="3">
+									<p:inputText style="width:800px;" label="" value="#{documentoVentaBean.email2Text}" />
+								</p:column>
+							</p:row>
+							<p:row rendered="false">
+								<p:column>
+									<h:outputText value="E-mail 3: " />
+								</p:column>
+								<p:column colspan="3">
+									<p:inputText style="width:800px;" label="" value="#{documentoVentaBean.email2Text}" />
+								</p:column>
+							</p:row>	
+						</h:panelGrid>
+						<h:panelGrid columns="4">
+							<h:outputText value="Número de Referencia: "/>
+							<p:inputText value="#{documentoVentaBean.numeroReferencia}" maxlength="45"/>
+							
+							<h:outputText value="Número de Aprobación: " style="margin-left:20px" />
+							<p:inputText value="#{documentoVentaBean.numeroAprobacion}" maxlength="45"/>
+						
+							<h:outputText value="Tipo Pago: "/>
+							<p:selectOneMenu value="#{documentoVentaBean.tipoPago}" unselectable="false" >
+								<f:selectItem itemLabel="EFECTIVO" itemValue="EFECTIVO" />
+							</p:selectOneMenu>
+							
+							<h:outputText value="Monto Tipo Pago: " style="margin-left:20px" />
+							<p:inputNumber decimalSeparator="." thousandSeparator=","  id="idMontoTipoPago" value="#{documentoVentaBean.montoTipoPago}"> 
+								<p:ajax update="idMontoTipoPago, idMontoTipoPago2" listener="#{documentoVentaBean.calcularTipoPago()}"/>
+							</p:inputNumber>
+							
+							<h:outputText value="Tipo Pago 2: " />
+							<p:selectOneMenu  value="#{documentoVentaBean.tipoPago2}" unselectable="false" >
+								<f:selectItem itemLabel="YAPE" itemValue="YAPE" />
+								<f:selectItem itemLabel="PLIN" itemValue="PLIN" />
+								<f:selectItem itemLabel="T. DEBITO" itemValue="T. DEBITO" />
+								<f:selectItem itemLabel="T. CREDITO" itemValue="T. CREDITO" />
+							</p:selectOneMenu>
+							
+							<h:outputText value="Monto Tipo Pago 2: " style="margin-left:20px" />
+							<p:inputNumber decimalSeparator="." thousandSeparator=","  id="idMontoTipoPago2" value="#{documentoVentaBean.montoTipoPago2}"> 
+								<p:ajax update="idMontoTipoPago, idMontoTipoPago2" listener="#{documentoVentaBean.calcularTipoPago2()}"/>
+							</p:inputNumber>
+							
+							<h:outputText value="Moneda: " />
+							<p:selectOneMenu value="#{documentoVentaBean.moneda}" unselectable="false">
+								<f:selectItem itemLabel="Soles" itemValue="S" />
+							</p:selectOneMenu>
+							
+							<h:outputLabel value="Condición Pago:" style="margin-left:20px"/>
+				        	<p:selectOneMenu value="#{documentoVentaBean.condicionPago}" converter="#{documentoVentaBean.conversorCondicionPago}"  >
+								<f:selectItems value="#{documentoVentaBean.lstCondicionPago}" var="condicionPago" itemLabel="#{condicionPago.nombre}" itemValue="#{condicionPago}"/>
+							</p:selectOneMenu>
+						</h:panelGrid>
+						
+						<p:commandButton value="Guardar" actionListener="#{documentoVentaBean.validarFormularioDocumentoVenta(false)}" update="form:tabView:gridImpCuota" onstart="PF('blockUIWidgetGeneral').block();" oncomplete="PF('blockUIWidgetGeneral').unblock();" styleClass="mt-3 ui-button-outlined block"  style="margin-left:10px" icon="pi pi-save"  />
+						<p:commandButton value="Cancelar" oncomplete="PF('cancelarDocumento').show()"   style="margin-left:10px" icon="pi pi-times"  />
+						<p:commandButton value="Proforma" actionListener="#{documentoVentaBean.validarFormularioDocumentoVenta(true)}" update="form:tabView:gridImpCuota" onstart="PF('blockUIWidgetGeneral').block();" oncomplete="PF('blockUIWidgetGeneral').unblock();" styleClass="mt-3 ui-button-outlined block"  style="margin-left:10px" icon="pi pi-save"  />
+													
+					</p:panel>
+						
+					
+				
+				</h:panelGrid>
+
+				<h:panelGrid id="gridMontos" style="width:25%;float:right;" columns="1" >	
+					<p:panel  header="Montos" toggleable="true" toggleSpeed="500" widgetVar="panelMontos" >
+						<h:panelGrid id="pnlMontos" columns="3" styleClass="companyHeaderGrid">
+						
+							<h:outputText value="Anticipos:" />
+							<h:outputText value="S/"/>
+            				<h:outputText value="#{documentoVentaBean.anticipos}" />
+							
+							<h:outputText value="Op. Gravada:" />
+							<h:outputText value="S/"/>
+            				<h:outputText value="#{documentoVentaBean.opGravada}" />
+
+							<h:outputText value="Op. Exonerada:" />
+							<h:outputText value="S/"/>
+            				<h:outputText value="#{documentoVentaBean.opExonerada}" />
+
+							<h:outputText value="Op. Inafecta:" />
+							<h:outputText value="S/"/>
+            				<h:outputText value="#{documentoVentaBean.opInafecta}"  />
+
+							<h:outputText value="Op. Gratuita:" />
+							<h:outputText value="S/"/>
+            				<h:outputText value="#{documentoVentaBean.opGratuita}"  />
+
+							<h:outputText value="Descuentos:" />
+							<h:outputText value="S/"/>
+            				<h:outputText value="#{documentoVentaBean.descuentos}"  />
+
+							<h:outputText value="ISC:" />
+							<h:outputText value="S/"/>
+            				<h:outputText value="#{documentoVentaBean.ISC}" />
+
+							<h:outputText value="IGV:" />
+							<h:outputText value="S/"/>
+            				<h:outputText value="#{documentoVentaBean.IGV}" />
+
+							<h:outputText value="Otros Cargos:" />
+							<h:outputText value="S/"/>
+            				<h:outputText value="#{documentoVentaBean.otrosCargos}" />
+
+							<h:outputText value="Otros Tributos:" />
+							<h:outputText value="S/"/>
+            				<h:outputText value="#{documentoVentaBean.otrosTributos}" />
+
+							
+							<h:outputText value="Importe Total:" style="margin-right:20px;font-weight: bolder" />
+							<h:outputText value="S/" style="font-weight: bolder"/>
+							<h:outputText value="#{documentoVentaBean.importeTotal}" style="font-weight: bolder" />
+							
+						</h:panelGrid>
+					</p:panel>
+	
+				</h:panelGrid>
+				
+				<h:panelGrid  style="width:100%;float:left">
+					
+					<p:dataTable var="detalle" id="idTableDetalleDocVenta" value="#{documentoVentaBean.lstDetalleDocumentoVenta}" widgetVar="detalleTable" rowIndexVar="row" paginator="true" rows="15" size="small"
+					emptyMessage="No se encontraron detalles de documento de venta." editable="true"  editMode="cell" paginatorPosition="bottom" rowKey="#{detalle.id}"  selectionMode="single" selection="#{documentoVentaBean.detalleDocumentoVentaSelected}">
+			
+						
+						<f:facet name="header">
+							<div class="p-d-flex p-ai-center p-jc-between">
+								<span>Lista de Detalles de Venta</span>
+							</div>
+						</f:facet>   
+						
+						<p:column style="width:42px;text-align: left">
+							<f:facet name="header"> 								
+							</f:facet>
+						</p:column>
+												
+				        <p:column headerText="#"  width="25px" filterMatchMode="contains">
+							#{row +1}
+						</p:column>
+						
+						<p:column headerText="Producto" filterMatchMode="contains" >
+                        	<h:outputText value="#{detalle.descripcion}" />
+						</p:column>
+						
+						<p:column headerText="Unidades" filterMatchMode="contains">
+	                        <h:outputText value="#{detalle.unidadesItem}">
+	                            <f:convertNumber type="currency" currencySymbol=""/>
+	                        </h:outputText>
+						</p:column>
+						
+						<p:column headerText="Precio Item" filterMatchMode="contains">
+	                        <h:outputText value="#{detalle.precioItem}">
+	                            <f:convertNumber type="currency" currencySymbol=""/>
+	                        </h:outputText>
+						</p:column>
+						
+						<p:column headerText="Cantidad" filterMatchMode="contains">
+							
+	                        <p:spinner id="basic" value="#{detalle.cantidad}"> 
+	                        	<p:ajax event="change" listener="#{documentoVentaBean.calcularCantidadDetalle(detalle, row)}" onstart="PF('blockUIWidgetGeneral').block();" oncomplete="PF('blockUIWidgetGeneral').unblock();" update=":form:tabView:gridImpCuota  :form:tabView:idTableDetalleDocVenta :form:tabView:gridMontos :form:tabView:pnl :form:tabView:pnlCond"/>
+	                        </p:spinner>
+	                        
+						</p:column>
+						
+						<p:column headerText="Total" filterMatchMode="contains">
+	                        <h:outputText value="#{detalle.total}">
+	                            <f:convertNumber type="currency" currencySymbol=""/>
+	                        </h:outputText>
+						</p:column>
+						
+						
+						
+						<p:column headerText="Total Unidades" filterMatchMode="contains">
+	                        <h:outputText value="#{detalle.totalUnidadesItem}">
+	                            <f:convertNumber type="currency" currencySymbol=""/>
+	                        </h:outputText>
+						</p:column>
+						
+						
+						<p:column width="10%" filterMatchMode="contains">
+							<p:commandButton   icon="pi pi-trash" styleClass="rounded-button ui-button-danger" action="#{documentoVentaBean.eliminarDetalleVenta(row)}" 
+							update=":form:tabView:idTableDetalleDocVenta :form:tabView:gridMontos :form:tabView:pnl :form:tabView:idTipoComprobante"/>
+						</p:column>
+				
+					</p:dataTable>
+					
+					<p:panel id="pnlCond" header="Condiciones de venta" rendered="false" toggleable="true" toggleSpeed="500" widgetVar="panelCondVen" style="width:100%; margin-top:10px;">
+						<h:panelGrid columns="6">
+						
+							<h:outputText value="Con IGV: " style="margin-left:10px" rendered="false"/>
+							<h:selectOneMenu value="#{documentoVentaBean.incluirIgv}" unselectable="false" rendered="false">
+								<f:selectItem itemLabel="NO" itemValue="#{false}" />
+								<f:selectItem itemLabel="SI" itemValue="#{true}" />
+								<p:ajax update=":form:tabView:gridMontos" listener="#{documentoVentaBean.cambioIgv}"/>
+							</h:selectOneMenu>
+								
+						</h:panelGrid>
+					</p:panel>
+				</h:panelGrid>
+			</p:tab>
+			<p:tab title="Lista de Proformas">
+				<p:selectOneButton value="#{documentoVentaBean.estadoProformaFilter}" unselectable="false">
+		           <f:selectItem itemLabel="Activos" itemValue="#{true}" />
+		           <f:selectItem itemLabel="Inactivos" itemValue="#{false}" />
+		           <p:ajax update="idTableProforma" />
+		        </p:selectOneButton>
+				
+				<p:dataTable var="proforma" id="idTableProforma" value="#{documentoVentaBean.lstProformaLazy}" widgetVar="proformaTable" rowIndexVar="row" paginator="true" rows="40" size="small"
+					emptyMessage="No se encontraron resultados." paginatorPosition="bottom" rowKey="#{proforma.id}" selection="#{documentoVentaBean.proformaSelected}" selectionMode="single">
+					
+					<p:ajax event="rowSelect" listener="#{documentoVentaBean.listarDetalleProforma}" update="dialogProformaDetalle" oncomplete="PF('proformaDetalleDialog').show();" />
+					
+				
+					<f:facet name="header">
+						<div class="p-d-flex p-ai-center p-jc-between">
+							<span>Lista de Caja</span>
+						</div>
+					</f:facet>
+					
+					<p:column width="25px">
+			            #{row +1}
+			        </p:column>
+			        
+			        <p:column headerText="Correlativo" filterMatchMode="contains" sortBy="#{proforma.cliente.razonSocial}" >
+						<h:outputText value="PF01 - #{proforma.id}"/>
+					</p:column>
+			        
+			        <p:column headerText="Cliente" filterMatchMode="contains" sortBy="#{proforma.cliente.razonSocial}" filterBy="#{proforma.cliente.razonSocial}">
+						<h:outputText value="#{proforma.cliente.razonSocial}"/>
+					</p:column>
+					<p:column headerText="Fecha" filterMatchMode="contains" sortBy="#{proforma.fecha}">
+						<h:outputText value="#{proforma.fecha}" > 
+		        			<f:convertDateTime pattern="dd/MM/yyyy" />
+		        		</h:outputText>
+					</p:column>			
+					<p:column headerText="Sub-Total" filterMatchMode="contains">
+						<h:outputText value="#{proforma.subTotal}" >   
+			                <f:convertNumber type="currency" currencySymbol=""/>
+			            </h:outputText>
+					</p:column>
+					<p:column headerText="IGV" filterMatchMode="contains">
+						<h:outputText value="#{proforma.igv}" >   
+			                <f:convertNumber type="currency" currencySymbol=""/>
+			            </h:outputText>
+					</p:column>
+					<p:column headerText="Total" filterMatchMode="contains">
+						<h:outputText value="#{proforma.total}" >   
+			                <f:convertNumber type="currency" currencySymbol=""/>
+			            </h:outputText>
+					</p:column>
+					<p:column headerText="Usuario" filterMatchMode="contains">
+						<h:outputText value="#{proforma.usuario.username}"/>
+					</p:column>
+				</p:dataTable>
+				
+				<p:contextMenu id="menuTablePro" for="idTableProforma" >
+		            <p:menuitem value="Anular" icon="pi pi-trash" oncomplete="PF('anulaProforma').show()"  />
+		        </p:contextMenu>
+			
+			</p:tab>
+		</p:tabView>		
+			
+	</h:form>
+	
+	<p:dialog height="670px" modal="true" dynamic="true" closeOnEscape="true" id="dialogDocumentoVenta" header="DOCUMENTO DE VENTA" widgetVar="docVentDialog" resizable="false" closable="true"
+		appendTo="@(body)" style="background-color:green;" width="80%" >
+		<h:form id="formDocumentoVentaDialog">
+
+			<h:panelGrid width="100%" columns="2" styleClass="companyHeaderGrid"> 
+			
+				<p:graphicImage  value="#{navegacionBean.sucursalLogin.id eq 1?'/recursos/images/LOGO.jpg':'/recursos/images/LOGO.jpg'}"  library="demo" style="width:150px"/>	
+
+	        	<h:panelGrid columns="1" style="float:right" >	
+	        		<h:panelGrid columns="1" >	
+	        			<h:outputText value="#{documentoVentaBean.documentoVentaSelected.tipoDocumento.abreviatura eq 'B'?'BOLETA': documentoVentaBean.documentoVentaSelected.tipoDocumento.abreviatura eq 'F'?'FACTURA': documentoVentaBean.documentoVentaSelected.tipoDocumento.abreviatura eq 'C'?'NOTA DE CRÉDITO': 'NOTA DE DÉBITO'} N° #{documentoVentaBean.documentoVentaSelected.serie}-#{documentoVentaBean.documentoVentaSelected.numero}" style="width : 100px;color:#337CFF;font-size: 20px;"/>				
+					</h:panelGrid>
+					<h:panelGrid columns="2" >	
+						<h:outputText value="Fecha Emisión:" style="float:right"/>
+		        		<h:outputText value="#{documentoVentaBean.documentoVentaSelected.fechaEmision}" style="float:right" > 
+		        			<f:convertDateTime pattern="dd/MM/yyyy" />
+		        		</h:outputText>
+					</h:panelGrid>
+					
+				</h:panelGrid>
+			</h:panelGrid>
+			
+			<h:panelGrid columns="2" styleClass="companyHeaderGrid">
+	
+				<h:outputText value="Ruc:" />
+	        	<h:outputText value="#{documentoVentaBean.documentoVentaSelected.ruc}" />
+				
+				<h:outputText value="Cliente:" />
+	        	<h:outputText value="#{documentoVentaBean.documentoVentaSelected.razonSocial}" />
+	
+				<h:outputText value="Dirección:" />
+	        	<h:outputText value="#{documentoVentaBean.documentoVentaSelected.direccion}" />
+	
+				<h:outputText value="Tipo Pago:" />
+	        	<h:outputText value="#{documentoVentaBean.documentoVentaSelected.tipoPago} / Monto: #{documentoVentaBean.documentoVentaSelected.montoTipoPago}"  />
+	        	
+	        	<h:outputText value="Tipo Pago 2:" />
+	        	<h:outputText value="#{documentoVentaBean.documentoVentaSelected.tipoPago2} / Monto: #{documentoVentaBean.documentoVentaSelected.montoTipoPago2}"  />
+	        	
+	        	<h:outputText value="Número Ref.: " rendered="#{documentoVentaBean.documentoVentaSelected.montoTipoPago2 gt 0}"/>
+	        	<p:inplace>
+		            <p:inputText value="#{documentoVentaBean.documentoVentaSelected.numeroReferencia}"  rendered="#{documentoVentaBean.documentoVentaSelected.montoTipoPago2 gt 0}">
+			            <p:ajax event="blur" listener="#{documentoVentaBean.editarNumeroReferencia}" update="formDocumentoVentaDialog :form:tabView:idTableListDoc" />
+			        </p:inputText>
+		        </p:inplace>
+	        	
+	        	<h:outputText value="Número Aprob.:" rendered="#{documentoVentaBean.documentoVentaSelected.montoTipoPago2 gt 0}"/>
+	        	<p:inplace>
+		            <p:inputText value="#{documentoVentaBean.documentoVentaSelected.numeroAprobacion}"  rendered="#{documentoVentaBean.documentoVentaSelected.montoTipoPago2 gt 0}">
+			            <p:ajax event="blur" listener="#{documentoVentaBean.editarNumeroAprobacion}" update="formDocumentoVentaDialog :form:tabView:idTableListDoc" />
+			        </p:inputText>
+		        </p:inplace>
+	        	
+	        	<h:outputText value="Moneda:" />
+	        	<h:outputText value="#{documentoVentaBean.documentoVentaSelected.tipoMoneda eq 'S'?'Soles':'Dólares'}"  />
+	        	
+	        	<h:outputText value="Correo 1:" />
+	        	<p:inplace>
+		            <p:inputText value="#{documentoVentaBean.documentoVentaSelected.cliente.email1Fe}" id="textoEditado">
+			            <p:ajax event="blur" listener="#{documentoVentaBean.editarCorreoCliente}" update="formDocumentoVentaDialog" />
+			        </p:inputText>
+		        </p:inplace>
+		        
+		        <h:outputText value="Correo 2:" />
+		        <p:inplace>
+		            <p:inputText value="#{documentoVentaBean.documentoVentaSelected.cliente.email2Fe}" id="textoEditado2">
+			            <p:ajax event="blur" listener="#{documentoVentaBean.editarCorreoCliente}" update="formDocumentoVentaDialog" />
+			        </p:inputText>
+		        </p:inplace>
+		        
+		        <h:outputText value="Correo 3:" />
+		        <p:inplace>
+		            <p:inputText value="#{documentoVentaBean.documentoVentaSelected.cliente.email3Fe}" id="textoEditado3">
+			            <p:ajax event="blur" listener="#{documentoVentaBean.editarCorreoCliente}" update="formDocumentoVentaDialog" />
+			        </p:inputText>
+		        </p:inplace>
+	
+			</h:panelGrid>   
+				
+			<h:panelGrid>
+		
+				<p:dataTable var="det" id="idTableDetalleDocumento" value="#{documentoVentaBean.lstDetalleDocumentoVentaSelected}"  rowIndexVar="row" paginator="true" rows="15" size="small"
+				emptyMessage="No se encontraron detalles de documento de venta." style="width:100%" paginatorPosition="bottom" rowKey="#{det.id}"  selectionMode="single" selection="#{documentoVentaBean.detalleDocumentoVenta}">
+	
+					<p:column headerText="Cantidad" filterMatchMode="contains" style="text-align:center">
+						<h:outputText value="#{det.cantidad}"/>
+					</p:column>
+					
+					<p:column headerText="Descripción" filterMatchMode="contains" style="text-align:center;width:400px" >
+						<h:outputText value="#{det.descripcion}"  style="width:400px"/>
+					</p:column>
+	
+					<p:column headerText="Total" filterMatchMode="contains" style="text-align:center">
+						<h:outputText value="#{det.total}"> 
+							<f:convertNumber type="currency" currencySymbol=""/>
+						</h:outputText>
+					</p:column>
+					
+					<p:column headerText="Tipo Operación" filterMatchMode="contains" style="text-align:center">
+						<h:outputText value="#{det.tipoOperacion}"/> 
+					</p:column>
+			
+				</p:dataTable>
+	
+			</h:panelGrid>
+			
+			<h:panelGrid style="width:50%;float:left;" columns="1" >	
+				<h:panelGrid  columns="2" styleClass="companyHeaderGrid">
+				
+					<h:outputText value="Son:" />
+	         		<h:outputText value="#{documentoVentaBean.montoLetra}" />
+	
+				</h:panelGrid>
+	
+			</h:panelGrid>
+				
+			<h:panelGrid style="width:50%;float:right;" columns="1" >	
+				<h:panelGrid style="float:right"  columns="3" styleClass="companyHeaderGrid">
+				
+					<h:outputText value="Op. Gravada:" />
+					<h:outputText value="S/" />	
+	         		<h:outputText value="#{documentoVentaBean.documentoVentaSelected.opGravada}" />
+	
+					<h:outputText value="Op. Exonerada:" />
+					<h:outputText value="S/" />	
+	   				<h:outputText value="#{documentoVentaBean.documentoVentaSelected.opExonerada}" />
+	
+					<h:outputText value="Op. Inafecta:" />
+					<h:outputText value="S/" />	
+	   				<h:outputText value="#{documentoVentaBean.documentoVentaSelected.opInafecta}"  />
+				
+					<h:outputText value="Igv:" />
+					<h:outputText value="S/" />		
+	         		<h:outputText value="#{documentoVentaBean.documentoVentaSelected.igv}"> 
+						<f:convertNumber type="currency" currencySymbol=""/>
+					</h:outputText>
+	
+					<h:outputText value="Total:" style="color:blue"/>
+					<h:outputText value="S/" style="color:blue"/>	         		
+	         		<h:outputText value="#{documentoVentaBean.documentoVentaSelected.total}" style="color:blue"> 
+						<f:convertNumber type="currency" currencySymbol=""/>
+					</h:outputText>
+	
+				</h:panelGrid>
+			</h:panelGrid>
+			
+			<h:panelGrid columns="2" >
+				
+				<p:commandButton value="Descargar" icon="pi pi-file-pdf" onstart="PF('blockUIWidgetGeneral').block();" oncomplete="PF('blockUIWidgetGeneral').unblock();" action="#{documentoVentaBean.exportarPDF()}" ajax="false" />
+			    
+				<p:commandButton value="Enviar a SUNAT" onstart="PF('blockUIWidgetEnvioSunat').block();" oncomplete="PF('blockUIWidgetEnvioSunat').unblock();" rendered="#{documentoVentaBean.documentoVentaSelected.envioSunat eq false}" update=":form:tabView:idTableListDoc formDocumentoVentaDialog" icon="pi pi-send" action="#{documentoVentaBean.enviarDocumentoSunat}" /> 
+			</h:panelGrid>  
+		
+			<p:panel id="pnl" header="Datos Sunat" toggleable="true" toggleSpeed="500" widgetVar="panelDatos" style="width:80%" rendered="#{documentoVentaBean.documentoVentaSelected.envioSunat eq true}">
+				<h:panelGrid columns="2">
+					<h:outputText value="Envio aceptado por sunat:" style="font-weight: bold;"/>
+					<h:outputText value="#{documentoVentaBean.documentoVentaSelected.envioAceptadaPorSunat}" />
+					
+					<h:outputText value="Envio sunat descripcion:" style="font-weight: bold;"/>
+					<h:outputText value="#{documentoVentaBean.documentoVentaSelected.envioSunatDescription}" />
+					
+					<h:outputText value="Envio sunat note:" style="font-weight: bold;"/>
+					<h:outputText value="#{documentoVentaBean.documentoVentaSelected.envioSunatNote}" />
+					
+					<h:outputText value="Envio sunat soap error:" style="font-weight: bold;"/>
+					<h:outputText value="#{documentoVentaBean.documentoVentaSelected.envioSunatSoapError}" />
+					
+					<h:outputText value="Envio enlace del pdf:" style="font-weight: bold;"/>
+					<h:outputText value="#{documentoVentaBean.documentoVentaSelected.envioEnlaceDelPdf}" />
+					
+					<h:outputText value="Envio enlace del xml:" style="font-weight: bold;"/>
+					<h:outputText value="#{documentoVentaBean.documentoVentaSelected.envioEnlaceDelXml}" />
+					
+					<h:outputText value="Envio enlace del cdr:" style="font-weight: bold;"/>
+					<h:outputText value="#{documentoVentaBean.documentoVentaSelected.envioEnlaceDelCdr}" />
+					
+					<h:outputText value="Envio cadena codigo qr:" style="font-weight: bold;"/>
+					<h:outputText value="#{documentoVentaBean.documentoVentaSelected.envioCadenaCodigoQr}" />
+					
+					<h:outputText value="Envio cadena codigo hash:" style="font-weight: bold;"/>
+					<h:outputText value="#{documentoVentaBean.documentoVentaSelected.envioCodigoHash}" />
+					
+					<h:outputText value="Anulacion sunat ticket numero:" style="font-weight: bold;"/>
+					<h:outputText value="#{documentoVentaBean.documentoVentaSelected.anulacionSunatTicketNumero}" />
+					
+					<h:outputText value="Annulacion aceptado por sunat:" style="font-weight: bold;"/>
+					<h:outputText value="#{documentoVentaBean.documentoVentaSelected.anulacionAceptadaPorSunat}" />
+					
+					<h:outputText value="Anulacion sunat descripcion:" style="font-weight: bold;"/>
+					<h:outputText value="#{documentoVentaBean.documentoVentaSelected.anulacionSunatDescription}" />
+					
+					<h:outputText value="Anulacion sunat note:" style="font-weight: bold;"/>
+					<h:outputText value="#{documentoVentaBean.documentoVentaSelected.anulacionSunatNote}" />
+					
+					<h:outputText value="Anulacion sunat response code:" style="font-weight: bold;"/>
+					<h:outputText value="#{documentoVentaBean.documentoVentaSelected.anulacionSunatResponsecode}" />
+					
+					<h:outputText value="Anulacion sunat soap error:" style="font-weight: bold;"/>
+					<h:outputText value="#{documentoVentaBean.documentoVentaSelected.anulacionSunatSoapError}" />
+					
+					<h:outputText value="Envio sunat responde code:" style="font-weight: bold;"/>
+					<h:outputText value="#{documentoVentaBean.documentoVentaSelected.envioSunatResponseCode}" />
+			
+				</h:panelGrid>
+			</p:panel>
+			
+		</h:form>
+	</p:dialog>
+	
+	<p:dialog modal="true" height="600px" dynamic="true" closeOnEscape="true" id="dialogNotaCreditoDebito" header="NOTA CRÉDITO/DÉBITO" widgetVar="notaCreditoDebitoDialog" resizable="false" closable="true"
+		appendTo="@(body)"  width="60%">
+		<h:form id="formNotaCreditoDebitoDialog">
+			
+			<h:panelGrid columns="7">
+
+				<h:outputLabel value="Documento:" />
+				<p:selectOneMenu id="idNotaDocumento" value="#{documentoVentaBean.tipoDocumentoNotaSelected}" converter="#{documentoVentaBean.conversorNotaDocumento}" style="margin:10px; width:150px" >
+					<f:selectItems  value="#{documentoVentaBean.lstTipoDocumentoNota}" var="notaDocumento" itemLabel="#{notaDocumento.descripcion}" itemValue="#{notaDocumento}"/>
+					<p:ajax listener="#{documentoVentaBean.listarSerieNota()}" update="idSerieNumero, numero, idDatosNota"/>
+				</p:selectOneMenu>
+						
+				<h:outputLabel value="Serie-Número:" />
+
+				<p:selectOneMenu id="idSerieNumero" value="#{documentoVentaBean.serieNotaDocumentoSelected}" converter="#{documentoVentaBean.conversorSerieNota}" style="margin:10px">
+					<f:selectItems value="#{documentoVentaBean.lstSerieNotaDocumento}" var="serie" itemLabel="#{serie.serie}" itemValue="#{serie}" />
+<!-- 					<p:ajax listener="#{documentoVentaBean.cambiarSerie}" update="num" />  -->
+				</p:selectOneMenu>
+
+				<p:inputText value="#{documentoVentaBean.numeroNota}"  style="margin:10px" id="numero"/>
+				
+				<h:outputLabel value="Fecha: " />
+				<p:datePicker id="fechaNota" value="#{documentoVentaBean.fechaEmisionNotaVenta}" style="margin:5px;">
+<!-- 					<p:ajax update="txt_fecha_Formated, fecha" listener="#{documentoVentaBean.validacionFecha}" /> -->
+				</p:datePicker>
+
+			</h:panelGrid>
+			
+			<h:panelGrid id="idDatosNota" columns="2">
+
+				<h:outputLabel value="Ruc:" />
+				<h:outputLabel value="#{documentoVentaBean.documentoVentaSelected.cliente.dniRuc}" />
+				
+				<h:outputLabel value="Cliente:" />
+				<h:outputLabel value="#{documentoVentaBean.documentoVentaSelected.cliente.razonSocial}" />
+				
+				<h:outputLabel value="Direcciòn:" />
+				<h:outputLabel value="#{documentoVentaBean.documentoVentaSelected.cliente.direccion}" />
+				
+				<h:outputLabel value="Motivo Sunat:" />
+				<p:selectOneMenu id="idMotivo" value="#{documentoVentaBean.motivoNotaSelected}" converter="#{documentoVentaBean.conversorMotivoNota}" style="margin:10px; width:300px">
+					<f:selectItems  value="#{documentoVentaBean.lstMotivoNota}" var="motivoNota" itemLabel="#{motivoNota.codigo} - #{motivoNota.descripcion}" itemValue="#{motivoNota}"/>
+				</p:selectOneMenu>
+				
+				<h:outputLabel value="Tipo Operación:" />
+				<p:selectOneMenu id="idTipoOperacion" value="#{documentoVentaBean.tipoOperacionSelected}" converter="#{documentoVentaBean.conversorTipoOperacion}" style="margin:10px; width:300px">
+					<f:selectItems  value="#{documentoVentaBean.lstTipoOperacion}" var="tipoOperacion" itemLabel="#{tipoOperacion.descripcion}" itemValue="#{tipoOperacion}"/>
+				</p:selectOneMenu>
+				
+				<h:outputLabel value="Identificador:" />
+				<p:selectOneMenu id="idIdentificador" value="#{documentoVentaBean.identificadorSelected}" converter="#{documentoVentaBean.conversorIdentificador}" style="margin:10px; width:300px">
+					<f:selectItems  value="#{documentoVentaBean.lstIdentificador}" var="identificador" itemLabel="#{identificador.descripcion}" itemValue="#{identificador}"/>
+				</p:selectOneMenu>
+				
+				<p:commandButton value="Guardar" actionListener="#{documentoVentaBean.saveNota()}"  icon="pi pi-save"  update=":form:tabView:idTableListDoc"/>
+				
+			</h:panelGrid>
+			
+			<p:dataTable var="det" id="idTableDetalleDocumentoNota" value="#{documentoVentaBean.lstDetalleDocumentoVentaSelected}"  rowIndexVar="row" paginator="true" rows="15" size="small"
+				emptyMessage="No se encontraron detalles de documento de venta." style="width:100%" paginatorPosition="bottom" rowKey="#{det.id}"  selectionMode="single" selection="#{documentoVentaBean.detalleDocumentoVenta}">
+	
+					<p:column headerText="Cantidad" filterMatchMode="contains" style="text-align:center">
+						<h:outputText value="1"/>
+					</p:column>
+					
+					<p:column headerText="Descripción" filterMatchMode="contains" style="text-align:center;width:400px" >
+						<h:outputText value="#{det.descripcion}"  style="width:400px"/>
+					</p:column>
+	
+					<p:column headerText="Total" filterMatchMode="contains" style="text-align:center">
+						<h:outputText value="#{det.total}"> 
+							<f:convertNumber type="currency" currencySymbol=""/>
+						</h:outputText>
+					</p:column>
+			
+				</p:dataTable>
+				
+			<h:panelGrid columns="1">
+
+				<h:outputLabel value="RESUMEN" style="font-weight: bold;"/>
+				
+			</h:panelGrid>
+				
+			<h:panelGrid columns="2">
+				<h:outputText value="Op. Gravada:" />
+         		<h:outputText value="#{documentoVentaBean.documentoVentaSelected.opGravada}" />
+
+				<h:outputText value="Op. Exonerada:" />
+   				<h:outputText value="#{documentoVentaBean.documentoVentaSelected.opExonerada}" />
+
+				<h:outputText value="Op. Inafecta:" />
+   				<h:outputText value="#{documentoVentaBean.documentoVentaSelected.opInafecta}"  />
+				
+				<h:outputLabel value="IGV(18%):" />
+				<h:outputLabel value="#{documentoVentaBean.documentoVentaSelected.igv}" />
+				
+				<h:outputLabel value="Total:" style="font-weight: bold;"/>
+				<h:outputLabel value="#{documentoVentaBean.documentoVentaSelected.total}" />
+								
+			</h:panelGrid>
+	
+		</h:form>
+	</p:dialog>
+	
+	
+	<p:dialog modal="true" responsive="true" dynamic="true" closeOnEscape="true" id="dialogProformaDetalle" height="80%" header="DETALLE DE PROFORMA: PF01 - #{documentoVentaBean.proformaSelected.id}" widgetVar="proformaDetalleDialog" 
+		resizable="false" closable="true" appendTo="@(body)">
+		<h:form id="formDialogDetalle">	
+			<p:commandButton value="Descargar" icon="pi pi-file-pdf" action="#{documentoVentaBean.exportarProformaPDF()}" ajax="false" />
+	      	
+	      	<p:commandButton value="Pasar a Venta" actionListener="#{documentoVentaBean.pasarVentaProforma}" update=":form:tabView:idTableListDoc :form:tabView:idTableDetalleDocVenta :form:tabView:gridMontos :form:tabView:pnl :form:tabView:pnlCond" icon="pi pi-dollar" style="margin-left: 20px"/>
+		      			
+			<p:dataTable reflow="true" var="detalle" id="idTabDetalle" value="#{documentoVentaBean.lstDetalleProformasSelected}" rowIndexVar="row" rows="10" paginator="true" size="small"
+	    				editable="true" editMode="cell" paginatorPosition="bottom" rowKey="#{detalle.id}">
+	            <f:facet name="header">
+	                <div class="p-d-flex p-ai-center p-jc-between">
+	                    <span>LISTA DE PRODUCTOS DE PROFORMA</span>
+	                </div>
+	            </f:facet>
+	            
+	            <p:column width="25px">
+	                      #{row +1}
+	       		</p:column>
+	
+	            <p:column headerText="Producto" sortBy="#{detalle.presentacion.producto.descripcionTicket}" filterMatchMode="contains">
+	                <h:outputText value="#{detalle.presentacion.producto.descripcionTicket}"/>
+	            </p:column>
+	           <p:column headerText="Unidades" filterMatchMode="contains">
+	               <h:outputText value="#{detalle.unidadesItem}">
+	                   <f:convertNumber type="currency" currencySymbol=""/>
+	               </h:outputText>
+				</p:column>
+				
+				<p:column headerText="Precio Item" filterMatchMode="contains">
+                    <h:outputText value="#{detalle.precioItem}">
+                        <f:convertNumber type="currency" currencySymbol=""/>
+                    </h:outputText>
+				</p:column>
+				
+				<p:column headerText="Cantidad" filterMatchMode="contains">
+                    <h:outputText value="#{detalle.cantidad}">
+                        <f:convertNumber type="currency" currencySymbol=""/>
+                    </h:outputText>
+                       
+				</p:column>
+				
+				<p:column headerText="Total" filterMatchMode="contains">
+                       <h:outputText value="#{detalle.total}">
+                           <f:convertNumber type="currency" currencySymbol=""/>
+                       </h:outputText>
+				</p:column>
+				
+				<p:column headerText="Total Unidades" filterMatchMode="contains">
+                       <h:outputText value="#{detalle.totalUnidadesItem}">
+                           <f:convertNumber type="currency" currencySymbol=""/>
+                       </h:outputText>
+				</p:column>
+	        </p:dataTable>
+			
+		</h:form>
+	</p:dialog>
+	
+	<pe:blockUI widgetVar="blockUIWidgetGeneral">
+          <h:form style="background: white"> 
+          <h:outputText value="Cargando, espere..." style="white-space: nowrap; font-weight:bold; color: #036fab; background: white"/> 
+          </h:form>
+    </pe:blockUI>
+    
+    <pe:blockUI target="saveDocumento" widgetVar="blockUIWidgetDocumento">
+          <h:form style="background: white"> 
+          <h:outputText value="Cargando, espere..." style="white-space: nowrap; font-weight:bold; color: #036fab; background: white"/> 
+          </h:form>
+    </pe:blockUI>
+	<p:confirmDialog id="saveDocumento" message="¿Está seguro de guardar el documento de venta?" header="Confirmación" severity="alert" widgetVar="saveDocumento" appendTo="@(body)">
+        <h:form >
+            <p:commandButton value="SI" onstart="PF('blockUIWidgetDocumento').block();" oncomplete="PF('blockUIWidgetDocumento').unblock();PF('saveDocumento').hide()"  action="#{documentoVentaBean.saveDocumentoVenta()}" update=":form:tabView:idTableListDoc :form:tabView:idTableDetalleDocVenta :form:tabView:gridMontos :form:tabView:pnl :form:tabView:idTipoComprobante :form:tabView:pnlCond :form:tabView:gridImpCuota"/>
+            <p:commandButton value="NO" oncomplete="PF('saveDocumento').hide()"/>
+        </h:form>
+    </p:confirmDialog>
+    
+    <pe:blockUI target="saveProforma" widgetVar="blockUIWidgetProforma">
+          <h:form style="background: white"> 
+          <h:outputText value="Cargando, espere..." style="white-space: nowrap; font-weight:bold; color: #036fab; background: white"/> 
+          </h:form>
+    </pe:blockUI>
+	<p:confirmDialog id="saveProforma" message="¿Está seguro de guardar la Proforma?" header="Confirmación" severity="alert" widgetVar="saveProforma" appendTo="@(body)">
+        <h:form >
+            <p:commandButton value="SI" onstart="PF('blockUIWidgetProforma').block();" oncomplete="PF('blockUIWidgetProforma').unblock();PF('saveProforma').hide()"  
+            action="#{documentoVentaBean.saveProforma()}" 
+            update=":form:tabView:idTableListDoc :form:tabView:idTableDetalleDocVenta :form:tabView:gridMontos :form:tabView:pnl :form:tabView:idTipoComprobante :form:tabView:pnlCond :form:tabView:gridImpCuota :form:tabView:idTableProforma" />
+            <p:commandButton value="NO" oncomplete="PF('saveProforma').hide()"/>
+        </h:form>
+    </p:confirmDialog>
+    
+    <pe:blockUI target="anulaDocumento" widgetVar="blockUIWidgetAnularDoc">
+          <h:form style="background: white"> 
+          <h:outputText value="Cargando, espere..." style="white-space: nowrap; font-weight:bold; color: #036fab; background: white"/> 
+          </h:form>
+    </pe:blockUI>
+    <p:confirmDialog id="anulaDocumento" message="¿Está seguro de anular el documento de venta?" header="Confirmación" severity="alert" widgetVar="anulaDocumento" appendTo="@(body)">
+        <h:form >
+            <p:commandButton value="SI" onstart="PF('blockUIWidgetAnularDoc').block();" oncomplete="PF('blockUIWidgetAnularDoc').unblock();PF('anulaDocumento').hide()"  action="#{documentoVentaBean.anularDocumento()}" update=":form:tabView:idTableListDoc :form:tabView:gridImpCuota"/>
+            <p:commandButton value="NO" oncomplete="PF('anulaDocumento').hide()"/>
+        </h:form>
+    </p:confirmDialog>
+    
+    <pe:blockUI target="anulaProforma" widgetVar="blockUIWidgetAnularPro">
+          <h:form style="background: white"> 
+          <h:outputText value="Cargando, espere..." style="white-space: nowrap; font-weight:bold; color: #036fab; background: white"/> 
+          </h:form>
+    </pe:blockUI>
+    <p:confirmDialog id="anulaProforma" message="¿Está seguro de anular la Proformaa?" header="Confirmación" severity="alert" widgetVar="anulaProforma" appendTo="@(body)">
+        <h:form >
+            <p:commandButton value="SI" onstart="PF('blockUIWidgetAnularPro').block();" oncomplete="PF('blockUIWidgetAnularPro').unblock();PF('anulaProforma').hide()"  action="#{documentoVentaBean.anularProforma()}" update=":form:tabView:idTableProforma"/>
+            <p:commandButton value="NO" oncomplete="PF('anulaProforma').hide()"/>
+        </h:form>
+    </p:confirmDialog>
+    
+    <pe:blockUI target="cancelarDocumento" widgetVar="blockUIWidgetCancelarDoc">
+          <h:form style="background: white"> 
+          <h:outputText value="Cargando, espere..." style="white-space: nowrap; font-weight:bold; color: #036fab; background: white"/> 
+          </h:form>
+    </pe:blockUI>
+    <p:confirmDialog id="cancelarDocumento" message="¿Está seguro de cancelar el documento de venta?" header="Confirmación" severity="alert" widgetVar="cancelarDocumento" appendTo="@(body)">
+        <h:form >
+            <p:commandButton value="SI" onstart="PF('blockUIWidgetCancelarDoc').block();" oncomplete="PF('blockUIWidgetCancelarDoc').unblock();PF('cancelarDocumento').hide()"  action="#{documentoVentaBean.cancelarDocumentoVenta()}" update="form:tabView:pnl :form:tabView:gridMontos :form:tabView:pnlCond :form:tabView:idTableDetalleDocVenta"/>
+            <p:commandButton value="NO" oncomplete="PF('cancelarDocumento').hide()"/>
+        </h:form>
+    </p:confirmDialog>
+    
+     <pe:blockUI target="cobrarCredito" widgetVar="blockUIWidgetcobrarCredito">
+          <h:form style="background: white"> 
+          <h:outputText value="Cargando, espere..." style="white-space: nowrap; font-weight:bold; color: #036fab; background: white"/> 
+          </h:form>
+    </pe:blockUI>
+    <p:confirmDialog id="cobrarCredito" message="¿Está seguro de cobrar el crédito?" header="Confirmación" severity="alert" widgetVar="cobrarCredito" appendTo="@(body)">
+        <h:form >
+            <p:commandButton value="SI" onstart="PF('blockUIWidgetcobrarCredito').block();" oncomplete="PF('blockUIWidgetcobrarCredito').unblock();PF('cobrarCredito').hide()"  action="#{documentoVentaBean.cobrarCredito()}" update=":form:tabView:idTableListDoc"/>
+            <p:commandButton value="NO" oncomplete="PF('cobrarCredito').hide()"/>
+        </h:form>
+    </p:confirmDialog>
+    
+    <style type="text/css">
+	    .old {
+	        background-color: #fca752 !important;
+	        background-image: none !important;
+	        color: #000000 !important;
+	    }
+	</style>
+	
+</ui:composition>
