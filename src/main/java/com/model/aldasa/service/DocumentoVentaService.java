@@ -20,6 +20,7 @@ public interface DocumentoVentaService {
 
 	Optional<DocumentoVenta> findById(Integer id);
 	DocumentoVenta save(DocumentoVenta entity);
+	DocumentoVenta saveNota(DocumentoVenta entity, List<DetalleDocumentoVenta> lstDetalle, Caja CajaAbierta);
 	void delete(DocumentoVenta entity);
 	
 	List<DocumentoVenta> findByEstadoAndEnvioSunat(boolean estado, boolean envioSunat);
@@ -37,7 +38,7 @@ public interface DocumentoVentaService {
 	List<DocumentoVenta> findByDocumentoVentaRefAndTipoDocumentoAndEstado(DocumentoVenta documentoVenta, TipoDocumento tipoDocumento, boolean estado);
 	List<DocumentoVenta> findByEstadoAndNumeroReferenciaAndNumeroAprobacionAndFechaEmisionBetweenOrderByIdDesc(boolean estado, String numeroReferencia, String numeroAprobacion, Date fechaIni, Date fechaFin);
 
-	DocumentoVenta anular(DocumentoVenta entity);
+	DocumentoVenta anular(DocumentoVenta entity, Caja cajaAbierta);
 	
 	
 	//PARA EL REPORTE DE DOCUMENTOS DE VENTAS

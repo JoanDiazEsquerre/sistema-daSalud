@@ -16,19 +16,19 @@
             <link rel="shortcut icon" href="./recursos/images/logito.ico"/>
             <title>..:: SISTEMA BOTICA :..</title>                       
             	<p:growl autoUpdate="true" id="growl1" showDetail="true" />
-                
+            <h:outputStylesheet library="primefaces-afternoon" name="theme.css" />
         </h:head>
         <h:body style="font-size: 11px;  " >            
         
         	<pe:layout id="fullPage" stateCookie="true"
 				widgetVar="fpLayoutWidget">
 
-				<pe:layoutPane position="north" size="40" closable="false">
+				<pe:layoutPane position="north" size="70" closable="false">
 					<div style="width: 100%">
 						<p:graphicImage value="/recursos/images/LOGO.jpg" width="8%" library="demo"/>
 						<div style="float: right;">
 								<p:linkButton value="Salir" href="#{request.contextPath}/logout"
-								style="margin-right:10px;" />								
+								style="margin:10px;" />								
 						</div>
 						<div style="float: right;">
 							 <h:outputText value="#{navegacionBean.usuarioLogin.perfil.nombre}: #{navegacionBean.usuarioLogin.persona.apellidos} #{navegacionBean.usuarioLogin.persona.nombres}" style="font-weight: bold; font-size: 18px;  color: #666666;margin-right:10px;text-transform: uppercase; margin-top: 5px  " /> 

@@ -1418,7 +1418,19 @@ public class DocumentoVentaBean extends BaseBean {
 	}
 	
 	private void anulacionFinalDeDocumento() {
-		DocumentoVenta doc= documentoVentaService.anular(documentoVentaSelected);
+		List<Caja> lstcajaAbierta = cajaService.findBySucursalAndEstadoAndUsuario(navegacionBean.getSucursalLogin(), "Abierta", navegacionBean.getUsuarioLogin());
+		Caja cajaAbierta = null;
+		
+		if(lstcajaAbierta.isEmpty()) {
+			addErrorMessage(navegacionBean.getUsuarioLogin().getUsername() +", para anular tienes que abrir una caja.");
+			return;
+			
+		}else {
+			cajaAbierta=lstcajaAbierta.get(0);
+		}
+		
+		
+		DocumentoVenta doc= documentoVentaService.anular(documentoVentaSelected, cajaAbierta);
 		if(doc!=null) {
 			addInfoMessage("Documento de venta anulado.");	
 		}else {
@@ -1433,6 +1445,19 @@ public class DocumentoVentaBean extends BaseBean {
 			addErrorMessage( "Ya se registró una " + tipoDocumentoNotaSelected.getDescripcion() + " para la " + documentoVentaSelected.getTipoDocumento().getDescripcion());
 			return; 
 		}
+		
+		
+		List<Caja> lstcajaAbierta = cajaService.findBySucursalAndEstadoAndUsuario(navegacionBean.getSucursalLogin(), "Abierta", navegacionBean.getUsuarioLogin());
+		Caja cajaAbierta = null;
+		
+		if(lstcajaAbierta.isEmpty()) {
+			addErrorMessage(navegacionBean.getUsuarioLogin().getUsername() +", para guardar la Nota, tienes que abrir una caja.");
+			return;
+			
+		}else {
+			cajaAbierta=lstcajaAbierta.get(0);
+		}
+		
 		
 		DocumentoVenta doc = new DocumentoVenta();
 		doc.setCliente(documentoVentaSelected.getCliente());
@@ -1477,7 +1502,7 @@ public class DocumentoVentaBean extends BaseBean {
 		doc.setNumeroAprobacion("");
 		doc.setNumeroReferencia(""); 
 		
-		DocumentoVenta saveDocNota = documentoVentaService.save(doc);
+		DocumentoVenta saveDocNota = documentoVentaService.saveNota(doc, lstDetalleDocumentoVentaSelected, cajaAbierta);
 		if(saveDocNota!=null) {
 			SerieDocumento serie = serieDocumentoService.findById(serieNotaDocumentoSelected.getId()).get();
 			String numeroActual = String.format("%0" + serie.getTamanioNumero() + "d", Integer.valueOf(serie.getNumero()));
@@ -1490,12 +1515,12 @@ public class DocumentoVentaBean extends BaseBean {
 			saveDocNota.setNumero(numeroActual); 
 			documentoVentaService.save(saveDocNota);
 			
-			for(DetalleDocumentoVenta d:lstDetalleDocumentoVentaSelected) {
-				d.setId(null);
-				d.setDocumentoVenta(saveDocNota);
-				d.setEstado(true);
-				detalleDocumentoVentaService.save(d);	
-			} 
+//			for(DetalleDocumentoVenta d:lstDetalleDocumentoVentaSelected) {
+//				d.setId(null);
+//				d.setDocumentoVenta(saveDocNota);
+//				d.setEstado(true);
+//				detalleDocumentoVentaService.save(d);	
+//			} 
 			
 //			aqui actualizamos los campos del documento de origen
 			
@@ -1696,6 +1721,13 @@ public class DocumentoVentaBean extends BaseBean {
 			return;
 		}
 		
+		
+		if(importeTotal.compareTo(new BigDecimal(700))>1) {
+			if(numeroDocumentoText.equals("99999999")) { 
+				addErrorMessage("Los importes mayores a 700 soles, deben tener asigado a una persona o empresa."); 
+				return;
+			}
+		}
 		
 		
 		List<Caja> lstcajaAbierta = cajaService.findBySucursalAndEstadoAndUsuario(navegacionBean.getSucursalLogin(), "Abierta", navegacionBean.getUsuarioLogin());

@@ -195,54 +195,65 @@ public class DocumentoVentaServiceImpl implements DocumentoVentaService{
 	}
 
 	@Override
-	public DocumentoVenta anular(DocumentoVenta entity) {
+	public DocumentoVenta anular(DocumentoVenta entity, Caja cajaBierta) {
 		if(entity.getDocumentoVentaRef()!=null) {
-			if(entity.getDocumentoVentaRef().getTipoDocumento().getAbreviatura().equals("C")) {
+			if(entity.getTipoDocumento().getAbreviatura().equals("C")) {
 				entity.getDocumentoVentaRef().setNotacredito(false);
 				entity.getDocumentoVentaRef().setNumeroNotaCredito(null);
 
 			}
-			if(entity.getDocumentoVentaRef().getTipoDocumento().getAbreviatura().equals("D")) {
+			if(entity.getTipoDocumento().getAbreviatura().equals("D")) {
 				entity.getDocumentoVentaRef().setNotaDebito(false);
 				entity.getDocumentoVentaRef().setNumeroNotaDebito(null);
 			}
 			documentoVentaRepository.save(entity.getDocumentoVentaRef());
 		}
 		
-		List<DetalleCaja> busDetCaja = detalleCajaRepository.findByDocumentoVentaAndEstado(entity, true);
-		if(!busDetCaja.isEmpty()) {
-			for(DetalleCaja dc:busDetCaja) {
-				
-				dc.setEstado(false);
-				
-				if(dc.getOrigen().equals("Efectivo")) {
-					dc.getCaja().setMontoFinalEfectivo(dc.getCaja().getMontoFinalEfectivo().subtract(dc.getMonto()));
-				}else {
-					dc.getCaja().setMontoFinalPos(dc.getCaja().getMontoFinalPos().subtract(dc.getMonto()));
-				}
-				
-				
-				cajaRepository.save(dc.getCaja());
-				detalleCajaRepository.save(dc);
+		
+		if(entity.getTipoDocumento().getAbreviatura().equals("B") || entity.getTipoDocumento().getAbreviatura().equals("F")) {
+			DetalleCaja detalleEgreso = new DetalleCaja();
+			detalleEgreso.setCaja(cajaBierta);
+			detalleEgreso.setTipoMovimiento("Egreso");
+			detalleEgreso.setOrigen("Efectivo");
+			detalleEgreso.setDescripcion("POR ANULACION DEL DOCUMENTO DE VENTA "+ entity.getSerie()+"-"+ entity.getNumero());
+			detalleEgreso.setMonto(entity.getTotal());
+			detalleEgreso.setFecha(new Date());
+			detalleEgreso.setDocumentoVenta(entity);
+			detalleEgreso.setEstado(true);
+			detalleCajaRepository.save(detalleEgreso);
 			
+			cajaBierta.setMontoFinalEfectivo(cajaBierta.getMontoFinalEfectivo().subtract(entity.getTotal()));
+			cajaRepository.save(cajaBierta);
+			
+			
+			
+			List<DetalleDocumentoVenta> lstDetalle = detalleDocumentoVentaRepository.findByDocumentoVentaAndEstado(entity, true);
+			for(DetalleDocumentoVenta d:lstDetalle) {
+				if(d.getPresentacion()!=null) {
+					Optional<Presentacion> presentacionBusqueda = presentacionRepository.findById(d.getPresentacion().getId());
+					
+					presentacionBusqueda.get().setStockUnidad(presentacionBusqueda.get().getStockUnidad().add(d.getTotalUnidadesItem()));
+					if(presentacionBusqueda.get().getStockUnidad().compareTo(BigDecimal.ZERO)>0) {
+						presentacionBusqueda.get().setEstado("Pendiente");
+					}
+					
+					
+//					d.getPresentacion().setStockUnidad(d.getPresentacion().getStockUnidad().add(d.getTotalUnidadesItem()));
+					presentacionRepository.save(presentacionBusqueda.get());
+				}
+			}
+		}else {
+			List<DetalleCaja> lstDetalleCajas = detalleCajaRepository.findByDocumentoVentaAndEstado(entity, true);
+			for(DetalleCaja det : lstDetalleCajas) {
+				if(det.getTipoMovimiento().equals("Egreso")) { 
+					det.setEstado(false);
+					detalleCajaRepository.save(det);
+				}
 			}
 		}
 		
-		List<DetalleDocumentoVenta> lstDetalle = detalleDocumentoVentaRepository.findByDocumentoVentaAndEstado(entity, true);
-		for(DetalleDocumentoVenta d:lstDetalle) {
-			if(d.getPresentacion()!=null) {
-				Optional<Presentacion> presentacionBusqueda = presentacionRepository.findById(d.getPresentacion().getId());
-				
-				presentacionBusqueda.get().setStockUnidad(presentacionBusqueda.get().getStockUnidad().add(d.getTotalUnidadesItem()));
-				if(presentacionBusqueda.get().getStockUnidad().compareTo(BigDecimal.ZERO)>0) {
-					presentacionBusqueda.get().setEstado("Pendiente");
-				}
-				
-				
-//				d.getPresentacion().setStockUnidad(d.getPresentacion().getStockUnidad().add(d.getTotalUnidadesItem()));
-				presentacionRepository.save(presentacionBusqueda.get());
-			}
-		}
+		
+		
 		
 		entity.setEstado(false);
 		documentoVentaRepository.save(entity);
@@ -362,6 +373,52 @@ public class DocumentoVentaServiceImpl implements DocumentoVentaService{
 	public List<DocumentoVenta> findByEstadoAndPendientePago(boolean estado, boolean pendientePago) {
 		// TODO Auto-generated method stub
 		return documentoVentaRepository.findByEstadoAndPendientePago(estado, pendientePago); 
+	}
+
+	@Override
+	public DocumentoVenta saveNota(DocumentoVenta entity, List<DetalleDocumentoVenta> lstDetalleDocVenta,Caja cajaAbierta) {
+		// TODO Auto-generated method stub
+		documentoVentaRepository.save(entity);
+		
+		DetalleCaja detalleEgreso = new DetalleCaja();
+		detalleEgreso.setCaja(cajaAbierta);
+		detalleEgreso.setTipoMovimiento("Egreso");
+		detalleEgreso.setOrigen("Efectivo");
+		detalleEgreso.setDescripcion("POR GENERACION DE NOTA DE CREDITO DEL DOCUMENTO DE VENTA "+ entity.getSerie()+"-"+ entity.getNumero());
+		detalleEgreso.setMonto(entity.getTotal());
+		detalleEgreso.setFecha(new Date());
+		detalleEgreso.setDocumentoVenta(entity);
+		detalleEgreso.setEstado(true);
+		detalleCajaRepository.save(detalleEgreso);
+		
+		
+		cajaAbierta.setMontoFinalEfectivo(cajaAbierta.getMontoFinalEfectivo().subtract(entity.getTotal()));
+		cajaRepository.save(cajaAbierta);
+		
+		
+		for(DetalleDocumentoVenta d:lstDetalleDocVenta) {
+			d.setId(null);
+			d.setDocumentoVenta(entity);
+			d.setEstado(true);
+			detalleDocumentoVentaRepository.save(d);	
+			
+			
+			if(d.getPresentacion()!=null) {
+				Optional<Presentacion> presentacionBusqueda = presentacionRepository.findById(d.getPresentacion().getId());
+				
+				presentacionBusqueda.get().setStockUnidad(presentacionBusqueda.get().getStockUnidad().add(d.getTotalUnidadesItem()));
+				if(presentacionBusqueda.get().getStockUnidad().compareTo(BigDecimal.ZERO)>0) {
+					presentacionBusqueda.get().setEstado("Pendiente");
+				}
+				
+				
+//				d.getPresentacion().setStockUnidad(d.getPresentacion().getStockUnidad().add(d.getTotalUnidadesItem()));
+				presentacionRepository.save(presentacionBusqueda.get());
+			}
+		}
+		
+		
+		return entity;
 	}
 
 

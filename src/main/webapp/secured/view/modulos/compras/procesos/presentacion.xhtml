@@ -27,7 +27,7 @@
 		      	</p:commandButton>
 	
 		       <p:dataTable reflow="true" var="pre" id="idTable" value="#{presentacionBean.lstPresentacionLazy}" widgetVar="usersTable" rowIndexVar="row" paginator="true" rows="15" size="small"
-		            emptyMessage="No se encontraron resultados" style="width: 120%" paginatorPosition="bottom" rowKey="#{pre.id}" selection="#{presentacionBean.presentacionSelected}" selectionMode="single">
+		            emptyMessage="No se encontraron resultados" style="width: 125%" paginatorPosition="bottom" rowKey="#{pre.id}" selection="#{presentacionBean.presentacionSelected}" selectionMode="single">
 		            <f:facet name="header">
 		                <div class="p-d-flex p-ai-center p-jc-between">
 		                	<p:commandButton value="Presentación" actionListener="#{presentacionBean.agregarPresentacion}" update="dialogPresentacion" oncomplete="PF('presentacionDialog').show();" icon="pi pi-plus-circle" style="margin: 5px"/>
@@ -125,6 +125,16 @@
 		           <p:column headerText="Tipo Operación" sortBy="#{pre.producto.tipoOperacion}" filterMatchMode="contains">
 		                <h:outputText value="#{pre.producto.tipoOperacion}" />
 		           </p:column>
+		           
+		           <p:column headerText="Doc. Compra" filterMatchMode="contains">
+		                <h:outputText value="#{pre.detalleDocumentoCompra.documentoCompra.serie}-#{pre.detalleDocumentoCompra.documentoCompra.numero}" />
+		           </p:column>
+		           
+		           <p:column headerText="Fecha Compra" style="text-align:center;width: 100px;" filterMatchMode="contains">
+						<h:outputText value="#{pre.detalleDocumentoCompra.documentoCompra.fechaEmision}">
+							<f:convertDateTime pattern="dd/MM/yyyy" />
+						</h:outputText>
+					</p:column>
 		     
 		        </p:dataTable>
 		        
