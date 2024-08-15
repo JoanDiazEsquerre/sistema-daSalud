@@ -146,7 +146,7 @@
 				<p:contextMenu id="menuTableDoc" for="idTableListDoc" >
 		            <p:menuitem value="Cobrar Crédito" icon="pi pi-dollar" action="#{documentoVentaBean.validaCobrarCredito()}"  />
 		            <p:menuitem value="Generar Nota Crédito/Débito" action="#{documentoVentaBean.listarSerieNota()}" icon="pi pi-wallet" update="dialogNotaCreditoDebito"/>
-		            <p:menuitem value="Anular" icon="pi pi-trash" oncomplete="PF('anulaDocumento').show()"  />
+		            <p:menuitem value="Anular" icon="pi pi-trash" action="#{documentoVentaBean.bloquearAnulacion}" update="anulaDocumento" oncomplete="PF('anulaDocumento').show()"  />
 		        </p:contextMenu>
 		        
 		        
@@ -1039,8 +1039,19 @@
     </pe:blockUI>
     <p:confirmDialog id="anulaDocumento" message="¿Está seguro de anular el documento de venta?" header="Confirmación" severity="alert" widgetVar="anulaDocumento" appendTo="@(body)">
         <h:form >
-            <p:commandButton value="SI" onstart="PF('blockUIWidgetAnularDoc').block();" oncomplete="PF('blockUIWidgetAnularDoc').unblock();PF('anulaDocumento').hide()"  action="#{documentoVentaBean.anularDocumento()}" update=":form:tabView:idTableListDoc :form:tabView:gridImpCuota"/>
-            <p:commandButton value="NO" oncomplete="PF('anulaDocumento').hide()"/>
+        	<h:panelGrid columns="1">
+        		<p:outputLabel value="-En caso haya pagado solo en efectivo: " />
+        		<p:commandButton value="ANULAR CON MOVIMIENTO DE CAJA" onstart="PF('blockUIWidgetAnularDoc').block();" oncomplete="PF('blockUIWidgetAnularDoc').unblock();PF('anulaDocumento').hide()"  action="#{documentoVentaBean.anularDocumento('MOVIMIENTO')}" update=":form:tabView:idTableListDoc :form:tabView:gridImpCuota"/>
+            	
+            	
+            	<p:outputLabel value="-En caso sea venta de días anteriores, o haya pagado el mismo dia con POS: " style="margin-top: 30px"/>
+            	<p:commandButton value="ANULAR Y GENERAR EGRESO DE EFECTIVO" onstart="PF('blockUIWidgetAnularDoc').block();" oncomplete="PF('blockUIWidgetAnularDoc').unblock();PF('anulaDocumento').hide()"  action="#{documentoVentaBean.anularDocumento('EGRESO')}" update=":form:tabView:idTableListDoc :form:tabView:gridImpCuota"/>
+            	
+            	
+            	<p:commandButton value="CANCELAR" oncomplete="PF('anulaDocumento').hide()" style="margin-top: 30px"/>
+        	</h:panelGrid>
+        
+        	
         </h:form>
     </p:confirmDialog>
     

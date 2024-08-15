@@ -95,7 +95,15 @@ public class Presentacion {
 	@Column(name = "costobultounitarioreal")
 	private BigDecimal costoBultoUnitarioReal;
 	
+	@Column(name = "confirmarstock")
+	private boolean confirmarStock;
 	
+	@Column(name = "fechaconfirmacionstock")
+	private Date fechaConfirmacionStock;
+	
+	@ManyToOne
+	@JoinColumn(name="idusuarioconfirmacionstock")
+	private Usuario usuarioConfirmacionStock;
 	
 
 	public Integer getId() {
@@ -241,6 +249,24 @@ public class Presentacion {
 	}
 	public void setCostoBultoUnitarioReal(BigDecimal costoBultoUnitarioReal) {
 		this.costoBultoUnitarioReal = costoBultoUnitarioReal;
+	}
+	public boolean isConfirmarStock() {
+		return confirmarStock;
+	}
+	public void setConfirmarStock(boolean confirmarStock) {
+		this.confirmarStock = confirmarStock;
+	}
+	public Date getFechaConfirmacionStock() {
+		return fechaConfirmacionStock;
+	}
+	public void setFechaConfirmacionStock(Date fechaConfirmacionStock) {
+		this.fechaConfirmacionStock = fechaConfirmacionStock;
+	}
+	public Usuario getUsuarioConfirmacionStock() {
+		return usuarioConfirmacionStock;
+	}
+	public void setUsuarioConfirmacionStock(Usuario usuarioConfirmacionStock) {
+		this.usuarioConfirmacionStock = usuarioConfirmacionStock;
 	}
 	
 	

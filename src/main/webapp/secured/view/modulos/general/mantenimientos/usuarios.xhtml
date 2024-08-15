@@ -106,11 +106,9 @@
 	</h:form>
 			
 		
-    <p:dialog modal="true" dynamic="true" closeOnEscape="true" id="dialogSucursal" header="Asignar sucursal a : #{usuarioBean.userSelected.persona.nombres} #{usuarioBean.userSelected.persona.apellidos}"  
+	<p:dialog modal="true" dynamic="true" closeOnEscape="true" id="dialogSucursal" header="Asignar sucursal a : #{usuarioBean.userSelected.persona.nombres} #{usuarioBean.userSelected.persona.apellidos}"  
     	widgetVar="sucursalDialog" resizable="false" closable="true" appendTo="@(body)" width="55%">
 		<h:form id="formsucursalDialog">
-	       
-	        
 	        <h:panelGrid id="grid" columns="5" width="50%">
 				
 				<h:outputLabel for="empresa" value="Empresa:" /> 
@@ -157,34 +155,58 @@
     <p:dialog modal="true" dynamic="true" closeOnEscape="true" id="dialogProyecto" header="#{usuarioBean.tituloDialog}" widgetVar="proyectoNewDialog" resizable="false" closable="true"
         appendTo="@(body)" style="width:auto">
         <h:form id="formProyecto">
-            <h:panelGrid id="grid" columns="2">
-            	<h:outputLabel for="option" value="Persona:" />
-                <p:autoComplete scrollHeight="300" styleClass="ui-autocompV" value="#{usuarioBean.userSelected.persona}" converter="#{usuarioBean.conversorPerson}" id="option" completeMethod="#{usuarioBean.completePerson}"  
-                          var="per" itemLabel="#{per.apellidos.concat(' ')}#{per.nombres}" itemValue="#{per}" forceSelection="true" style="margin:10px" />
-                
-                <h:outputLabel for="username" value="Nombre de Usuario: " />
-                <p:inputText id="username" value="#{usuarioBean.userSelected.username}" style="margin:10px" maxlength="30" />
-
-              	<h:outputLabel for="pass" value="Contraseña:" />
-                <p:inputText id="pass" value="#{usuarioBean.userSelected.password}" style="margin:10px" maxlength="50" />
+	        <p:tabView id="tabView"> 
+				<p:tab title="General"> 
+					<h:panelGrid id="grid" columns="2">
+		            	<h:outputLabel for="option" value="Persona:" />
+		                <p:autoComplete scrollHeight="300" styleClass="ui-autocompV" value="#{usuarioBean.userSelected.persona}" converter="#{usuarioBean.conversorPerson}" id="option" completeMethod="#{usuarioBean.completePerson}"  
+		                          var="per" itemLabel="#{per.apellidos.concat(' ')}#{per.nombres}" itemValue="#{per}" forceSelection="true" style="margin:10px" />
+		                
+		                <h:outputLabel for="username" value="Nombre de Usuario: " />
+		                <p:inputText id="username" value="#{usuarioBean.userSelected.username}" style="margin:10px" maxlength="30" />
+		
+		              	<h:outputLabel for="pass" value="Contraseña:" />
+		                <p:inputText id="pass" value="#{usuarioBean.userSelected.password}" style="margin:10px" maxlength="50" />
+		                        
+		                <h:outputLabel for="optionPerfil" value="Perfil:" />
+		                <p:selectOneMenu id="optionPerfil" value="#{usuarioBean.userSelected.perfil}" converter="#{usuarioBean.conversorProfile}" style="margin:10px" >
+		                    <f:selectItem itemLabel="[-- Ninguno --]" itemValue="#{null}"/>
+		                    <f:selectItems value="#{usuarioBean.lstPerfil}" var="prof" itemLabel="#{prof.nombre}" itemValue="#{prof}"/>
+		                </p:selectOneMenu>
+		                
+		             
+		                
+		                <h:outputLabel for="estado" value="Estado:" />
+		                <p:selectOneMenu id="estado" value="#{usuarioBean.userSelected.estado}" style="margin:10px" >
+		                    <f:selectItem itemLabel="Activo" itemValue="#{true}"/>
+		                    <f:selectItem itemLabel="Inactivo" itemValue="#{false}"/>
+		                </p:selectOneMenu>
+		                    <p:commandButton value="Guardar" actionListener="#{usuarioBean.saveUpdateUser()}" update=":form:tabView:idTableUser :formProyecto"/>
+		                    
+		            </h:panelGrid>
+						
+				</p:tab>
+				
+				<p:tab title="Permisos">
+					<h:panelGrid columns="4"> 
+						<h:outputLabel value="Modificar presentaciones:" />
+						 <p:selectOneMenu value="#{usuarioBean.userSelected.modificarPresentacion}" style="margin:10px" >
+		                    <f:selectItem itemLabel="NO" itemValue="#{false}"/>
+		                    <f:selectItem itemLabel="SI" itemValue="#{true}"/>
+		                </p:selectOneMenu>
+		                
+		                <h:outputLabel value="Confirmar Stock:" />
+						 <p:selectOneMenu value="#{usuarioBean.userSelected.confirmarStock}" style="margin:10px" >
+		                    <f:selectItem itemLabel="NO" itemValue="#{false}"/>
+		                    <f:selectItem itemLabel="SI" itemValue="#{true}"/>
+		                </p:selectOneMenu>
+					</h:panelGrid>
+					 
+				</p:tab>
+				
+				
+			</p:tabView>	
                         
-                <h:outputLabel for="optionPerfil" value="Perfil:" />
-                <p:selectOneMenu id="optionPerfil" value="#{usuarioBean.userSelected.perfil}" converter="#{usuarioBean.conversorProfile}" style="margin:10px" >
-                    <f:selectItem itemLabel="[-- Ninguno --]" itemValue="#{null}"/>
-                    <f:selectItems value="#{usuarioBean.lstPerfil}" var="prof" itemLabel="#{prof.nombre}" itemValue="#{prof}"/>
-                </p:selectOneMenu>
-                
-             
-                
-                <h:outputLabel for="estado" value="Estado:" />
-                <p:selectOneMenu id="estado" value="#{usuarioBean.userSelected.estado}" style="margin:10px" >
-                    <f:selectItem itemLabel="Activo" itemValue="#{true}"/>
-                    <f:selectItem itemLabel="Inactivo" itemValue="#{false}"/>
-                </p:selectOneMenu>
-                    <p:commandButton value="Guardar" actionListener="#{usuarioBean.saveUpdateUser()}" update=":form:tabView:idTableUser :formProyecto"/>
-                    
-            </h:panelGrid>
-            
         </h:form>
     </p:dialog>
     

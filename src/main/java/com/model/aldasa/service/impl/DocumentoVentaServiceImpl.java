@@ -195,7 +195,7 @@ public class DocumentoVentaServiceImpl implements DocumentoVentaService{
 	}
 
 	@Override
-	public DocumentoVenta anular(DocumentoVenta entity, Caja cajaBierta) {
+	public DocumentoVenta anular(DocumentoVenta entity, Caja cajaBierta, String tipoAnulacion) {
 		if(entity.getDocumentoVentaRef()!=null) {
 			if(entity.getTipoDocumento().getAbreviatura().equals("C")) {
 				entity.getDocumentoVentaRef().setNotacredito(false);
@@ -211,6 +211,87 @@ public class DocumentoVentaServiceImpl implements DocumentoVentaService{
 		
 		
 		if(entity.getTipoDocumento().getAbreviatura().equals("B") || entity.getTipoDocumento().getAbreviatura().equals("F")) {
+			
+			if(tipoAnulacion.equals("EGRESO")) {
+				DetalleCaja detalleEgreso = new DetalleCaja();
+				detalleEgreso.setCaja(cajaBierta);
+				detalleEgreso.setTipoMovimiento("Egreso");
+				detalleEgreso.setOrigen("Efectivo");
+				detalleEgreso.setDescripcion("POR ANULACION DEL DOCUMENTO DE VENTA "+ entity.getSerie()+"-"+ entity.getNumero());
+				detalleEgreso.setMonto(entity.getTotal());
+				detalleEgreso.setFecha(new Date());
+				detalleEgreso.setDocumentoVenta(entity);
+				detalleEgreso.setEstado(true);
+				detalleCajaRepository.save(detalleEgreso);
+				
+				cajaBierta.setMontoFinalEfectivo(cajaBierta.getMontoFinalEfectivo().subtract(entity.getTotal()));
+				cajaRepository.save(cajaBierta);
+				
+			}else if(tipoAnulacion.equals("MOVIMIENTO")) {
+				List<DetalleCaja> lstDetalleCajas = detalleCajaRepository.findByDocumentoVentaAndEstado(entity, true);
+				for(DetalleCaja det : lstDetalleCajas) {
+					det.setEstado(false);
+					detalleCajaRepository.save(det);
+					
+				}
+				
+				
+				BigDecimal totalEfectivo = cajaBierta.getMontoInicioEfectivo();
+				BigDecimal totalPos = cajaBierta.getMontoInicioPos();
+				List<DetalleCaja> lstdetalle = detalleCajaRepository.findByCajaAndEstado(cajaBierta, true);
+				for(DetalleCaja detalle: lstdetalle) {
+					if(detalle.getOrigen().equals("Efectivo")) {
+						if(detalle.getTipoMovimiento().equals("Ingreso")) {
+							totalEfectivo = totalEfectivo.add(detalle.getMonto());
+						}else {
+							totalEfectivo = totalEfectivo.subtract(detalle.getMonto());
+						}
+					}
+					
+					if(detalle.getOrigen().equals("POS")) {
+						if(detalle.getTipoMovimiento().equals("Ingreso")) {
+							totalPos = totalPos.add(detalle.getMonto());
+						}else {
+							totalPos = totalPos.subtract(detalle.getMonto());
+						}
+					}
+					
+				}
+				
+				
+				
+				cajaBierta.setMontoFinalEfectivo(totalEfectivo);
+				cajaBierta.setMontoFinalPos(totalPos);
+				cajaRepository.save(cajaBierta);
+			}
+			
+			
+			
+			List<DetalleDocumentoVenta> lstDetalle = detalleDocumentoVentaRepository.findByDocumentoVentaAndEstado(entity, true);
+			for(DetalleDocumentoVenta d:lstDetalle) {
+				if(d.getPresentacion()!=null) {
+					Optional<Presentacion> presentacionBusqueda = presentacionRepository.findById(d.getPresentacion().getId());
+					
+					presentacionBusqueda.get().setStockUnidad(presentacionBusqueda.get().getStockUnidad().add(d.getTotalUnidadesItem()));
+					
+					if(presentacionBusqueda.get().getStockUnidad().compareTo(BigDecimal.ZERO)>0) {
+						presentacionBusqueda.get().setEstado("Pendiente");
+					}
+					
+					
+//					d.getPresentacion().setStockUnidad(d.getPresentacion().getStockUnidad().add(d.getTotalUnidadesItem()));
+					presentacionRepository.save(presentacionBusqueda.get());
+				}
+			}
+		}else {
+//			List<DetalleCaja> lstDetalleCajas = detalleCajaRepository.findByDocumentoVentaAndEstado(entity, true);
+//			for(DetalleCaja det : lstDetalleCajas) {
+//				if(det.getTipoMovimiento().equals("Egreso")) { 
+//					det.setEstado(false);
+//					detalleCajaRepository.save(det);
+//				}
+//			}
+			
 			DetalleCaja detalleEgreso = new DetalleCaja();
 			detalleEgreso.setCaja(cajaBierta);
 			detalleEgreso.setTipoMovimiento("Egreso");
@@ -224,41 +305,45 @@ public class DocumentoVentaServiceImpl implements DocumentoVentaService{
 			
 			cajaBierta.setMontoFinalEfectivo(cajaBierta.getMontoFinalEfectivo().subtract(entity.getTotal()));
 			cajaRepository.save(cajaBierta);
-			
-			
-			
-			List<DetalleDocumentoVenta> lstDetalle = detalleDocumentoVentaRepository.findByDocumentoVentaAndEstado(entity, true);
-			for(DetalleDocumentoVenta d:lstDetalle) {
-				if(d.getPresentacion()!=null) {
-					Optional<Presentacion> presentacionBusqueda = presentacionRepository.findById(d.getPresentacion().getId());
-					
-					presentacionBusqueda.get().setStockUnidad(presentacionBusqueda.get().getStockUnidad().add(d.getTotalUnidadesItem()));
-					if(presentacionBusqueda.get().getStockUnidad().compareTo(BigDecimal.ZERO)>0) {
-						presentacionBusqueda.get().setEstado("Pendiente");
-					}
-					
-					
-//					d.getPresentacion().setStockUnidad(d.getPresentacion().getStockUnidad().add(d.getTotalUnidadesItem()));
-					presentacionRepository.save(presentacionBusqueda.get());
-				}
-			}
-		}else {
-			List<DetalleCaja> lstDetalleCajas = detalleCajaRepository.findByDocumentoVentaAndEstado(entity, true);
-			for(DetalleCaja det : lstDetalleCajas) {
-				if(det.getTipoMovimiento().equals("Egreso")) { 
-					det.setEstado(false);
-					detalleCajaRepository.save(det);
-				}
-			}
 		}
 		
 		
-		
+		calcularMontosFinalesCaja(cajaBierta); 
 		
 		entity.setEstado(false);
 		documentoVentaRepository.save(entity);
 		
 		return entity;
+	}
+	
+	public void calcularMontosFinalesCaja(Caja cajaSelected) {
+		BigDecimal totalEfectivo = cajaSelected.getMontoInicioEfectivo();
+		BigDecimal totalPos = cajaSelected.getMontoInicioPos();
+		List<DetalleCaja> lstdetalle = detalleCajaRepository.findByCajaAndEstado(cajaSelected, true);
+		for(DetalleCaja detalle: lstdetalle) {
+			if(detalle.getOrigen().equals("Efectivo")) {
+				if(detalle.getTipoMovimiento().equals("Ingreso")) {
+					totalEfectivo = totalEfectivo.add(detalle.getMonto());
+				}else {
+					totalEfectivo = totalEfectivo.subtract(detalle.getMonto());
+				}
+			}
+			
+			if(detalle.getOrigen().equals("POS")) {
+				if(detalle.getTipoMovimiento().equals("Ingreso")) {
+					totalPos = totalPos.add(detalle.getMonto());
+				}else {
+					totalPos = totalPos.subtract(detalle.getMonto());
+				}
+			}
+			
+		}
+		
+		
+		
+		cajaSelected.setMontoFinalEfectivo(totalEfectivo);
+		cajaSelected.setMontoFinalPos(totalPos);
+		cajaRepository.save(cajaSelected);
 	}
 
 	@Override

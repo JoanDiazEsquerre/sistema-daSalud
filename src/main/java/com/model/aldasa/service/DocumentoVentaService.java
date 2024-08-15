@@ -38,7 +38,7 @@ public interface DocumentoVentaService {
 	List<DocumentoVenta> findByDocumentoVentaRefAndTipoDocumentoAndEstado(DocumentoVenta documentoVenta, TipoDocumento tipoDocumento, boolean estado);
 	List<DocumentoVenta> findByEstadoAndNumeroReferenciaAndNumeroAprobacionAndFechaEmisionBetweenOrderByIdDesc(boolean estado, String numeroReferencia, String numeroAprobacion, Date fechaIni, Date fechaFin);
 
-	DocumentoVenta anular(DocumentoVenta entity, Caja cajaAbierta);
+	DocumentoVenta anular(DocumentoVenta entity, Caja cajaAbierta, String tipoAnulacion);
 	
 	
 	//PARA EL REPORTE DE DOCUMENTOS DE VENTAS

@@ -26,8 +26,9 @@
 		           <p:fileDownload value="#{presentacionBean.fileDes}"/> 
 		      	</p:commandButton>
 	
-		       <p:dataTable reflow="true" var="pre" id="idTable" value="#{presentacionBean.lstPresentacionLazy}" widgetVar="usersTable" rowIndexVar="row" paginator="true" rows="15" size="small"
-		            emptyMessage="No se encontraron resultados" style="width: 125%" paginatorPosition="bottom" rowKey="#{pre.id}" selection="#{presentacionBean.presentacionSelected}" selectionMode="single">
+		       <p:dataTable reflow="true" var="pre" id="idTable" value="#{presentacionBean.lstPresentacionLazy}" widgetVar="usersTable" rowIndexVar="row" paginator="true" rows="15"
+		            emptyMessage="No se encontraron resultados" style="width: 150%; font-size:12px" paginatorPosition="bottom" rowKey="#{pre.id}" selection="#{presentacionBean.presentacionSelected}" 
+		            selectionMode="single" >
 		            <f:facet name="header">
 		                <div class="p-d-flex p-ai-center p-jc-between">
 		                	<p:commandButton value="Presentación" actionListener="#{presentacionBean.agregarPresentacion}" update="dialogPresentacion" oncomplete="PF('presentacionDialog').show();" icon="pi pi-plus-circle" style="margin: 5px"/>
@@ -38,10 +39,10 @@
 		            </f:facet>
 		            <p:ajax event="rowSelect" update="dialogPresentacion" listener="#{presentacionBean.modificarPresentacion}" oncomplete="PF('presentacionDialog').show();" />
 		
-		           <p:column style="width:42px;text-align: left">
-		                <f:facet name="header">
-		                
-		                </f:facet>
+		           <p:column sortBy="#{pre.confirmarStock}" width="25px">
+    		       		<p:commandButton icon="pi pi-check" styleClass="rounded-button ui-button-success" title="#{presentacionBean.convertirHoraFull(pre.fechaConfirmacionStock)} - #{pre.usuarioConfirmacionStock.username}" rendered="#{pre.confirmarStock}"  />
+    		           	
+    		           	<p:commandButton icon="pi pi-times" styleClass="rounded-button ui-button-danger"  rendered="#{pre.confirmarStock eq false}"/>
 		            </p:column>
 		
 		           	<p:column width="25px">
@@ -139,7 +140,8 @@
 		        </p:dataTable>
 		        
 		        <p:contextMenu id="menuTablePre" for="idTable" >
-		            <p:menuitem value="Ver Historial de Ventas" icon="pi pi-book" actionListener="#{presentacionBean.verHistorialVentas()}" oncomplete="PF('historialVentasDialog').show()" update=":formDetalleDocVenta:idTableDetalleDocumento" />
+		            <p:menuitem value="Ver Historial de Ventas" icon="pi pi-book" actionListener="#{presentacionBean.verHistorialVentas()}" oncomplete="PF('historialVentasDialog').show()" update=":formDetalleDocVenta" />
+		            
 		        </p:contextMenu>
 		        
 			</p:tab>
@@ -153,6 +155,23 @@
        		<p:commandButton  value="Descargar Historial" ajax="false" onclick="PrimeFaces.monitorDownload(start, stop); PF('blockUIWidgetGeneral').block();" actionListener="#{presentacionBean.procesarExcelHistorial}" oncomplete="PF('blockUIWidgetGeneral').unblock();" icon="pi pi-file-excel" styleClass="mr-2">
 	           <p:fileDownload value="#{presentacionBean.fileDesHistorial}"/> 
 	      	</p:commandButton>
+	      	
+	     	<h:panelGrid columns="8">
+	     		<p:outputLabel value="Stock Inicial:" style="font-size: 20px; font-weight:bold"/>
+	     		<p:outputLabel value="#{presentacionBean.stockInicial}" style="font-size: 20px; color: green; font-weight:bold"/>
+	     		
+	     		<p:outputLabel value="Stock Actual:" style="font-size: 20px; margin-left: 50px; font-weight:bold"/>
+	     		<p:outputLabel value="#{presentacionBean.stockActual}" style="font-size: 20px; color: blue; font-weight:bold"/>
+	     		
+	     		<p:outputLabel value="Stock Vendido:" style="font-size: 20px; font-weight:bold; margin-left: 50px"/>
+	     		<p:outputLabel value="#{presentacionBean.stockVendido}" style="font-size: 20px; color: red; font-weight:bold"/>
+	     		
+	     		<p:outputLabel value="Diferencia(actual+vendido):" style="font-size: 20px; font-weight:bold; margin-left: 50px"/>
+	     		<p:outputLabel value="#{presentacionBean.stockDiferencia}" style="font-size: 20px; color: brown; font-weight:bold"/>
+	     		
+	     		<p:commandButton value="Confirmar Stock" rendered="#{navegacionBean.usuarioLogin.confirmarStock}" update=":form:tabView:idTable" action="#{presentacionBean.confirmarStock}"/> 
+	     		
+	     	</h:panelGrid>
 	      	
        		<p:dataTable var="det" id="idTableDetalleDocumento" value="#{presentacionBean.lstDetDocVenta}"  rowIndexVar="row" paginator="true" rows="10" size="small"
 			emptyMessage="No se encontraron detalles de documento de venta." style="width:100%" paginatorPosition="bottom" rowKey="#{det.id}"  selectionMode="single" >
@@ -393,7 +412,7 @@
             <h:outputLabel value="Margen Ganancia: " style="margin-left: 10px"/>
            	<p:inputNumber decimalSeparator="." thousandSeparator=","  value="#{presentacionBean.presentacionSelected.margenGanancia}" symbolPosition="s" symbol="%" modifyValueOnWheel="false" /> 
             <p:commandButton value="Calcular Margen" actionListener="#{presentacionBean.calcularMargen}" update=":formLaboratorio:idPrecioBulto :formLaboratorio:idPrecioFraccion :formLaboratorio:idPrecioUnidad"/> 
-            <p:commandButton value="Guardar" style="margin-left: 10px" actionListener="#{presentacionBean.savePresentacion}" update=":form:tabView:idTable"/> 
+            <p:commandButton value="Guardar" style="margin-left: 10px" actionListener="#{presentacionBean.savePresentacion}" update=":form:tabView:idTable" rendered="#{navegacionBean.usuarioLogin.modificarPresentacion}"/> 
             
         </h:form>
     </p:dialog>
@@ -403,7 +422,5 @@
           <h:outputText value="Cargando, espere..." style="white-space: nowrap; font-weight:bold; color: #036fab; background: white"/> 
           </h:form>
     </pe:blockUI>
-    
-    
    
 </ui:composition>

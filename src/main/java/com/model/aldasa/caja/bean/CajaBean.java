@@ -154,6 +154,7 @@ public class CajaBean extends BaseBean {
 	
 	public void cerrarCaja() {
 		BigDecimal totalEfectivo = cajaSelected.getMontoInicioEfectivo();
+		BigDecimal totalPos = cajaSelected.getMontoInicioPos();
 		List<DetalleCaja> lstdetalle = detalleCajaService.findByCajaAndEstado(cajaSelected, true);
 		for(DetalleCaja detalle: lstdetalle) {
 			if(detalle.getOrigen().equals("Efectivo")) {
@@ -164,10 +165,6 @@ public class CajaBean extends BaseBean {
 				}
 			}
 			
-		}
-		BigDecimal totalPos = cajaSelected.getMontoInicioPos();
-		lstdetalle = detalleCajaService.findByCajaAndEstado(cajaSelected, true);
-		for(DetalleCaja detalle: lstdetalle) {
 			if(detalle.getOrigen().equals("POS")) {
 				if(detalle.getTipoMovimiento().equals("Ingreso")) {
 					totalPos = totalPos.add(detalle.getMonto());
@@ -177,6 +174,7 @@ public class CajaBean extends BaseBean {
 			}
 			
 		}
+		
 		
 		
 		cajaSelected.setMontoFinalEfectivo(totalEfectivo);

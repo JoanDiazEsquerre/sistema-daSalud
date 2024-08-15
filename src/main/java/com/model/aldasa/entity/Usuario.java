@@ -1,5 +1,6 @@
 package com.model.aldasa.entity;
 
+import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
@@ -27,6 +28,12 @@ public class Usuario {
 	@ManyToOne
 	@JoinColumn(name="idperfil")
 	private Perfil perfil;
+	
+	@Column(name="modificarpresentacion")
+	private Boolean modificarPresentacion;
+	
+	@Column(name="confirmarstock")
+	private Boolean confirmarStock;
 	
 	
 	public Integer getId() {
@@ -65,6 +72,19 @@ public class Usuario {
 	public void setPerfil(Perfil perfil) {
 		this.perfil = perfil;
 	}
+	public Boolean getModificarPresentacion() {
+		return modificarPresentacion;
+	}
+	public void setModificarPresentacion(Boolean modificarPresentacion) {
+		this.modificarPresentacion = modificarPresentacion;
+	}
+	public Boolean getConfirmarStock() {
+		return confirmarStock;
+	}
+	public void setConfirmarStock(Boolean confirmarStock) {
+		this.confirmarStock = confirmarStock;
+	}
+
 	
 	
 }

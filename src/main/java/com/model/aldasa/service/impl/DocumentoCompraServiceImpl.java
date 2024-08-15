@@ -84,6 +84,7 @@ public class DocumentoCompraServiceImpl implements DocumentoCompraService{
 				presentacion.setPrecioUnidad(d.getPrecioUnidad());
 				presentacion.setMargenGanancia(d.getMargenGanancia());
 				presentacion.setCostoBultoUnitarioReal(d.getCostoBultoUnitarioReal()); 
+				presentacion.setConfirmarStock(false); 
 
 				
 				presentacionRepository.save(presentacion);

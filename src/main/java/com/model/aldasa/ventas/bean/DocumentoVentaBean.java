@@ -1358,19 +1358,10 @@ public class DocumentoVentaBean extends BaseBean {
 		
 	}
 	
-	public void anularDocumento() {
-		//si es boleta y  anulo el mismo de la emision, mandar mensaje de espererar 24 horas
-		if(documentoVentaSelected.getTipoDocumento().getAbreviatura().equals("B")) {
-			String fechaEmi = sdf.format(documentoVentaSelected.getFechaEmision());
-			String fechaactual = sdf.format(new Date());
-			if(fechaEmi.equals(fechaactual)) {
-				addWarnMessage("Debe esperar 24 horas para poder anular el comprobante."); 
-			}
-			
-		}
+	public void anularDocumento(String tipoAnulacion) {
 		
 		if(!documentoVentaSelected.isEnvioSunat()) {
-			anulacionFinalDeDocumento();
+			anulacionFinalDeDocumento(tipoAnulacion);
 			return;
 		}
 		
@@ -1407,7 +1398,7 @@ public class DocumentoVentaBean extends BaseBean {
                     documentoVentaSelected.setAnulacionSunatSoapError(json_rspta.get("sunat_soap_error").toString());
                 }
 
-                anulacionFinalDeDocumento();
+                anulacionFinalDeDocumento(tipoAnulacion);
         		
         			
             }
@@ -1417,7 +1408,7 @@ public class DocumentoVentaBean extends BaseBean {
 	
 	}
 	
-	private void anulacionFinalDeDocumento() {
+	private void anulacionFinalDeDocumento(String tipoAnulacion) {
 		List<Caja> lstcajaAbierta = cajaService.findBySucursalAndEstadoAndUsuario(navegacionBean.getSucursalLogin(), "Abierta", navegacionBean.getUsuarioLogin());
 		Caja cajaAbierta = null;
 		
@@ -1430,12 +1421,15 @@ public class DocumentoVentaBean extends BaseBean {
 		}
 		
 		
-		DocumentoVenta doc= documentoVentaService.anular(documentoVentaSelected, cajaAbierta);
+		DocumentoVenta doc= documentoVentaService.anular(documentoVentaSelected, cajaAbierta, tipoAnulacion);
 		if(doc!=null) {
 			addInfoMessage("Documento de venta anulado.");	
 		}else {
 			addErrorMessage("No se pudo anular el documento.");
 		}
+		
+		
+		
 	}
 	
 	public void saveNota() {
@@ -1722,7 +1716,7 @@ public class DocumentoVentaBean extends BaseBean {
 		}
 		
 		
-		if(importeTotal.compareTo(new BigDecimal(700))>1) {
+		if(importeTotal.compareTo(new BigDecimal(700))>0) {
 			if(numeroDocumentoText.equals("99999999")) { 
 				addErrorMessage("Los importes mayores a 700 soles, deben tener asigado a una persona o empresa."); 
 				return;

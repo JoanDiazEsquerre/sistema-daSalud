@@ -118,9 +118,12 @@ public class PresentacionBean extends BaseBean {
 	private String nombreArchivo = "Reporte de Presentaciones.xlsx";
 	private String nombreArchivoHistorial = "Reporte de Historial de Ventas.xlsx";
 	
+	private BigDecimal stockInicial = BigDecimal.ZERO, stockActual= BigDecimal.ZERO, stockVendido= BigDecimal.ZERO, stockDiferencia= BigDecimal.ZERO;
+	
 	private StreamedContent fileDes;
 	
 	SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy");
+	SimpleDateFormat sdfFull = new SimpleDateFormat("dd/MM/yyyy hh:mm:ss a");
 	
 	@PostConstruct
 	public void init() {
@@ -135,8 +138,62 @@ public class PresentacionBean extends BaseBean {
 		iniciarLazy();
 	}
 	
+	public String convertirHoraFull(Date hora) {
+		String a = "";
+		if(hora != null) {
+			a = sdfFull.format(hora);
+		}
+		
+		return a;
+	}
+	
+	public void confirmarStock() {
+		if(stockInicial.compareTo(stockDiferencia) == 0) {
+			presentacionSelected.setConfirmarStock(true);
+			presentacionSelected.setUsuarioConfirmacionStock(navegacionBean.getUsuarioLogin());
+			presentacionSelected.setFechaConfirmacionStock(new Date());
+			presentacionService.save(presentacionSelected);
+			
+			
+			
+			addInfoMessage("Se confirmó el Stock"); 
+			PrimeFaces.current().executeScript("PF('historialVentasDialog').hide();"); 
+		}else {
+			addErrorMessage("No se puede confirmar el stock, el stock inicial y la diferencia tienen que ser iguales."); 
+		}
+	}
+	
 	public void verHistorialVentas() {
 		lstDetDocVenta = detalleDocumentoVentaService.findByDocumentoVentaEstadoAndEstadoAndPresentacion(true, true, presentacionSelected);
+		
+		stockInicial = presentacionSelected.getCantidadBulto().multiply(presentacionSelected.getUnidadPorBulto());
+		stockActual = presentacionSelected.getStockUnidad();
+		stockVendido = BigDecimal.ZERO;
+		
+		List<DetalleDocumentoVenta> lstNuevaListaDet = new ArrayList<>();
+		
+		for(DetalleDocumentoVenta detalleVenta : lstDetDocVenta) {
+			
+			if(detalleVenta.getDocumentoVenta().getTipoDocumento().getAbreviatura().equals("B") || detalleVenta.getDocumentoVenta().getTipoDocumento().getAbreviatura().equals("F")) {
+				if(detalleVenta.getDocumentoVenta().getNumeroNotaCredito() == null) {
+					stockVendido = stockVendido.add(detalleVenta.getTotalUnidadesItem());
+					lstNuevaListaDet.add(detalleVenta);
+				}
+			}
+			
+			
+			
+			
+		}
+		
+		lstDetDocVenta.clear();
+		lstDetDocVenta.addAll(lstNuevaListaDet);
+		
+		
+		
+		
+		stockDiferencia = stockActual.add(stockVendido);
+		
 	}
 	
 	public void procesarExcel() {
@@ -161,16 +218,21 @@ public class PresentacionBean extends BaseBean {
 		cellSub1 = rowSubTitulo.createCell(8);cellSub1.setCellValue("NUMERO BULTOS");cellSub1.setCellStyle(styleTitulo);
 		cellSub1 = rowSubTitulo.createCell(9);cellSub1.setCellValue("UNIDADES POR BULTO");cellSub1.setCellStyle(styleTitulo);
 		cellSub1 = rowSubTitulo.createCell(10);cellSub1.setCellValue("FRACCIONAR");cellSub1.setCellStyle(styleTitulo);
-		cellSub1 = rowSubTitulo.createCell(11);cellSub1.setCellValue("STOCK ACTUAL");cellSub1.setCellStyle(styleTitulo);
-		cellSub1 = rowSubTitulo.createCell(12);cellSub1.setCellValue("PRECIO COMPRA");cellSub1.setCellStyle(styleTitulo);
-		cellSub1 = rowSubTitulo.createCell(13);cellSub1.setCellValue("PRINCIPIO ACTIVO");cellSub1.setCellStyle(styleTitulo);
-		cellSub1 = rowSubTitulo.createCell(14);cellSub1.setCellValue("DOLENCIA");cellSub1.setCellStyle(styleTitulo);
-		cellSub1 = rowSubTitulo.createCell(15);cellSub1.setCellValue("PRECIO BULTO");cellSub1.setCellStyle(styleTitulo);
-		cellSub1 = rowSubTitulo.createCell(16);cellSub1.setCellValue("PRECIO FRACCION");cellSub1.setCellStyle(styleTitulo);
-		cellSub1 = rowSubTitulo.createCell(17);cellSub1.setCellValue("PRECIO UNIDAD");cellSub1.setCellStyle(styleTitulo);
-		cellSub1 = rowSubTitulo.createCell(18);cellSub1.setCellValue("TIPO OPERACION");cellSub1.setCellStyle(styleTitulo);
-		cellSub1 = rowSubTitulo.createCell(19);cellSub1.setCellValue("COSTO POR ITEM REAL");cellSub1.setCellStyle(styleTitulo);
-		cellSub1 = rowSubTitulo.createCell(20);cellSub1.setCellValue("COSTO TOTAL ACTUAL");cellSub1.setCellStyle(styleTitulo);
+		cellSub1 = rowSubTitulo.createCell(11);cellSub1.setCellValue("STOCK INICIAL");cellSub1.setCellStyle(styleTitulo);
+		cellSub1 = rowSubTitulo.createCell(12);cellSub1.setCellValue("STOCK ACTUAL");cellSub1.setCellStyle(styleTitulo);
+		cellSub1 = rowSubTitulo.createCell(13);cellSub1.setCellValue("PRECIO COMPRA");cellSub1.setCellStyle(styleTitulo);
+		cellSub1 = rowSubTitulo.createCell(14);cellSub1.setCellValue("PRINCIPIO ACTIVO");cellSub1.setCellStyle(styleTitulo);
+		cellSub1 = rowSubTitulo.createCell(15);cellSub1.setCellValue("DOLENCIA");cellSub1.setCellStyle(styleTitulo);
+		cellSub1 = rowSubTitulo.createCell(16);cellSub1.setCellValue("PRECIO BULTO");cellSub1.setCellStyle(styleTitulo);
+		cellSub1 = rowSubTitulo.createCell(17);cellSub1.setCellValue("PRECIO FRACCION");cellSub1.setCellStyle(styleTitulo);
+		cellSub1 = rowSubTitulo.createCell(18);cellSub1.setCellValue("PRECIO UNIDAD");cellSub1.setCellStyle(styleTitulo);
+		cellSub1 = rowSubTitulo.createCell(19);cellSub1.setCellValue("TIPO OPERACION");cellSub1.setCellStyle(styleTitulo);
+		cellSub1 = rowSubTitulo.createCell(20);cellSub1.setCellValue("COSTO POR ITEM REAL");cellSub1.setCellStyle(styleTitulo);
+		cellSub1 = rowSubTitulo.createCell(21);cellSub1.setCellValue("COSTO TOTAL ACTUAL");cellSub1.setCellStyle(styleTitulo);
+		
+		cellSub1 = rowSubTitulo.createCell(22);cellSub1.setCellValue("FECHA CONFIRMACION STOCK");cellSub1.setCellStyle(styleTitulo);
+		cellSub1 = rowSubTitulo.createCell(23);cellSub1.setCellValue("USUARIO CONFIRMACION STOCK");cellSub1.setCellStyle(styleTitulo);
+		
 
 		
 		int index = 1;
@@ -179,6 +241,16 @@ public class PresentacionBean extends BaseBean {
 		
 		if (!lstPresentacion.isEmpty()) {
 			for (Presentacion d : lstPresentacion) {
+				
+				BigDecimal stockInicial =BigDecimal.ZERO;
+				BigDecimal costoPorItem =BigDecimal.ZERO;
+				BigDecimal total = BigDecimal.ZERO;
+				
+				if(d.getCantidadBulto().compareTo(BigDecimal.ZERO)>0 && d.getUnidadPorBulto().compareTo(BigDecimal.ZERO)>0 && d.getPrecioCompra().compareTo(BigDecimal.ZERO)>0) {
+					stockInicial = d.getCantidadBulto().multiply(d.getUnidadPorBulto());
+					costoPorItem = d.getPrecioCompra().divide(stockInicial,  8, RoundingMode.HALF_UP);
+					total = costoPorItem.multiply(d.getStockUnidad());
+				}
 				
 				rowSubTitulo = sheet.createRow(index);
 				cellSub1 = rowSubTitulo.createCell(0);cellSub1.setCellValue(d.getProducto().getDescripcion() == null ? "" : d.getProducto().getDescripcion());cellSub1.setCellStyle(styleBorder);
@@ -192,36 +264,31 @@ public class PresentacionBean extends BaseBean {
 				cellSub1 = rowSubTitulo.createCell(8);cellSub1.setCellValue(d.getCantidadBulto() == null ? "" : d.getCantidadBulto() + "");cellSub1.setCellStyle(styleBorder);
 				cellSub1 = rowSubTitulo.createCell(9);cellSub1.setCellValue(d.getUnidadPorBulto() == null ? "" : d.getUnidadPorBulto() + "");cellSub1.setCellStyle(styleBorder);
 				cellSub1 = rowSubTitulo.createCell(10);cellSub1.setCellValue(!d.isFraccionar()? "NO" : d.getNumeroFraccion() + "" );cellSub1.setCellStyle(styleBorder);
-				cellSub1 = rowSubTitulo.createCell(11);cellSub1.setCellValue(d.getStockUnidad() == null ? "" : d.getStockUnidad() + "");cellSub1.setCellStyle(styleBorder);
-				cellSub1 = rowSubTitulo.createCell(12);cellSub1.setCellValue(d.getPrecioCompra() == null ? "" : d.getPrecioCompra() + "");cellSub1.setCellStyle(styleBorder);
-				cellSub1 = rowSubTitulo.createCell(13);cellSub1.setCellValue(d.getProducto().getPrincipioActivo().getNombre() == null ? "" : d.getProducto().getPrincipioActivo().getNombre());cellSub1.setCellStyle(styleBorder);
-				cellSub1 = rowSubTitulo.createCell(14);cellSub1.setCellValue(d.getProducto().getDolencia().getNombre() == null ? "" : d.getProducto().getDolencia().getNombre());cellSub1.setCellStyle(styleBorder);
-				cellSub1 = rowSubTitulo.createCell(15);cellSub1.setCellValue(d.getPrecioBulto() == null ? "" : d.getPrecioBulto() + "");cellSub1.setCellStyle(styleBorder);
-				cellSub1 = rowSubTitulo.createCell(16);cellSub1.setCellValue(d.getPrecioFraccion() == null ? "" : d.getPrecioFraccion() + "");cellSub1.setCellStyle(styleBorder);
-				cellSub1 = rowSubTitulo.createCell(17);cellSub1.setCellValue(d.getPrecioUnidad() == null ? "" : d.getPrecioUnidad() + "");cellSub1.setCellStyle(styleBorder);
-				cellSub1 = rowSubTitulo.createCell(18);cellSub1.setCellValue(d.getProducto().getTipoOperacion() == null ? "" : d.getProducto().getTipoOperacion());cellSub1.setCellStyle(styleBorder);
+				cellSub1 = rowSubTitulo.createCell(11);cellSub1.setCellValue(stockInicial+"");cellSub1.setCellStyle(styleBorder);
+				cellSub1 = rowSubTitulo.createCell(12);cellSub1.setCellValue(d.getStockUnidad() == null ? "" : d.getStockUnidad() + "");cellSub1.setCellStyle(styleBorder);
+				cellSub1 = rowSubTitulo.createCell(13);cellSub1.setCellValue(d.getPrecioCompra() == null ? "" : d.getPrecioCompra() + "");cellSub1.setCellStyle(styleBorder);
+				cellSub1 = rowSubTitulo.createCell(14);cellSub1.setCellValue(d.getProducto().getPrincipioActivo().getNombre() == null ? "" : d.getProducto().getPrincipioActivo().getNombre());cellSub1.setCellStyle(styleBorder);
+				cellSub1 = rowSubTitulo.createCell(15);cellSub1.setCellValue(d.getProducto().getDolencia().getNombre() == null ? "" : d.getProducto().getDolencia().getNombre());cellSub1.setCellStyle(styleBorder);
+				cellSub1 = rowSubTitulo.createCell(16);cellSub1.setCellValue(d.getPrecioBulto() == null ? "" : d.getPrecioBulto() + "");cellSub1.setCellStyle(styleBorder);
+				cellSub1 = rowSubTitulo.createCell(17);cellSub1.setCellValue(d.getPrecioFraccion() == null ? "" : d.getPrecioFraccion() + "");cellSub1.setCellStyle(styleBorder);
+				cellSub1 = rowSubTitulo.createCell(18);cellSub1.setCellValue(d.getPrecioUnidad() == null ? "" : d.getPrecioUnidad() + "");cellSub1.setCellStyle(styleBorder);
+				cellSub1 = rowSubTitulo.createCell(19);cellSub1.setCellValue(d.getProducto().getTipoOperacion() == null ? "" : d.getProducto().getTipoOperacion());cellSub1.setCellStyle(styleBorder);
 				
 				
-				BigDecimal stockInicial =BigDecimal.ZERO;
-				BigDecimal costoPorItem =BigDecimal.ZERO;
-				BigDecimal total = BigDecimal.ZERO;
+				cellSub1 = rowSubTitulo.createCell(20);cellSub1.setCellValue(costoPorItem+"");cellSub1.setCellStyle(styleBorder);
+				cellSub1 = rowSubTitulo.createCell(21);cellSub1.setCellValue(total+"");cellSub1.setCellStyle(styleBorder);
 				
-				if(d.getCantidadBulto().compareTo(BigDecimal.ZERO)>0 && d.getUnidadPorBulto().compareTo(BigDecimal.ZERO)>0 && d.getPrecioCompra().compareTo(BigDecimal.ZERO)>0) {
-					stockInicial = d.getCantidadBulto().multiply(d.getUnidadPorBulto());
-					costoPorItem = d.getPrecioCompra().divide(stockInicial,  8, RoundingMode.HALF_UP);
-					total = costoPorItem.multiply(stockInicial);
-				}
+				cellSub1 = rowSubTitulo.createCell(22);cellSub1.setCellValue(d.getFechaConfirmacionStock() == null ? "" : sdfFull.format(d.getFechaConfirmacionStock()));cellSub1.setCellStyle(styleBorder);
+				cellSub1 = rowSubTitulo.createCell(23);cellSub1.setCellValue(d.getUsuarioConfirmacionStock() == null ? "" : d.getUsuarioConfirmacionStock().getUsername());cellSub1.setCellStyle(styleBorder);
 				
 				
-				cellSub1 = rowSubTitulo.createCell(19);cellSub1.setCellValue(costoPorItem+"");cellSub1.setCellStyle(styleBorder);
-				cellSub1 = rowSubTitulo.createCell(20);cellSub1.setCellValue(total+"");cellSub1.setCellStyle(styleBorder);
 				
 				index++;
 			}
 		}
 		
 		
-		for (int j = 0; j <= 20; j++) {
+		for (int j = 0; j <= 23; j++) {
 			sheet.autoSizeColumn(j);
 			
 		}
@@ -1076,21 +1143,41 @@ public class PresentacionBean extends BaseBean {
 	public void setDetalleDocumentoVentaService(DetalleDocumentoVentaService detalleDocumentoVentaService) {
 		this.detalleDocumentoVentaService = detalleDocumentoVentaService;
 	}
-
 	public List<DetalleDocumentoVenta> getLstDetDocVenta() {
 		return lstDetDocVenta;
 	}
-
 	public void setLstDetDocVenta(List<DetalleDocumentoVenta> lstDetDocVenta) {
 		this.lstDetDocVenta = lstDetDocVenta;
 	}
-
 	public String getNombreArchivoHistorial() {
 		return nombreArchivoHistorial;
 	}
-
 	public void setNombreArchivoHistorial(String nombreArchivoHistorial) {
 		this.nombreArchivoHistorial = nombreArchivoHistorial;
+	}
+	public BigDecimal getStockInicial() {
+		return stockInicial;
+	}
+	public void setStockInicial(BigDecimal stockInicial) {
+		this.stockInicial = stockInicial;
+	}
+	public BigDecimal getStockActual() {
+		return stockActual;
+	}
+	public void setStockActual(BigDecimal stockActual) {
+		this.stockActual = stockActual;
+	}
+	public BigDecimal getStockVendido() {
+		return stockVendido;
+	}
+	public void setStockVendido(BigDecimal stockVendido) {
+		this.stockVendido = stockVendido;
+	}
+	public BigDecimal getStockDiferencia() {
+		return stockDiferencia;
+	}
+	public void setStockDiferencia(BigDecimal stockDiferencia) {
+		this.stockDiferencia = stockDiferencia;
 	}
 
 
