@@ -108,9 +108,10 @@ public class PresentacionBean extends BaseBean {
 	private List<UnidadMedida> lstUnidadMedida;
 	private List<DetalleDocumentoVenta> lstDetDocVenta;
 	
-	private Presentacion presentacionSelected;
+	private Presentacion presentacionSelected, presentacionCambio;
 	private Producto productoNew;
 	private UnidadMedida unidadMedidaNew;
+	private DetalleDocumentoVenta detalleDocVentaSelected;
 
 	private String estadoFiltro = "Pendiente" ;
 	
@@ -138,6 +139,10 @@ public class PresentacionBean extends BaseBean {
 		iniciarLazy();
 	}
 	
+	public void iniciarCambioPresentacion() {
+		presentacionCambio = null;
+	}
+	
 	public String convertirHoraFull(Date hora) {
 		String a = "";
 		if(hora != null) {
@@ -148,7 +153,7 @@ public class PresentacionBean extends BaseBean {
 	}
 	
 	public void confirmarStock() {
-		if(stockInicial.compareTo(stockDiferencia) == 0) {
+//		if(stockInicial.compareTo(stockDiferencia) == 0) {
 			presentacionSelected.setConfirmarStock(true);
 			presentacionSelected.setUsuarioConfirmacionStock(navegacionBean.getUsuarioLogin());
 			presentacionSelected.setFechaConfirmacionStock(new Date());
@@ -158,9 +163,9 @@ public class PresentacionBean extends BaseBean {
 			
 			addInfoMessage("Se confirmó el Stock"); 
 			PrimeFaces.current().executeScript("PF('historialVentasDialog').hide();"); 
-		}else {
-			addErrorMessage("No se puede confirmar el stock, el stock inicial y la diferencia tienen que ser iguales."); 
-		}
+//		}else {
+//			addErrorMessage("No se puede confirmar el stock, el stock inicial y la diferencia tienen que ser iguales."); 
+//		}
 	}
 	
 	public void verHistorialVentas() {
@@ -1178,6 +1183,18 @@ public class PresentacionBean extends BaseBean {
 	}
 	public void setStockDiferencia(BigDecimal stockDiferencia) {
 		this.stockDiferencia = stockDiferencia;
+	}
+	public DetalleDocumentoVenta getDetalleDocVentaSelected() {
+		return detalleDocVentaSelected;
+	}
+	public void setDetalleDocVentaSelected(DetalleDocumentoVenta detalleDocVentaSelected) {
+		this.detalleDocVentaSelected = detalleDocVentaSelected;
+	}
+	public Presentacion getPresentacionCambio() {
+		return presentacionCambio;
+	}
+	public void setPresentacionCambio(Presentacion presentacionCambio) {
+		this.presentacionCambio = presentacionCambio;
 	}
 
 

@@ -174,7 +174,7 @@
 	     	</h:panelGrid>
 	      	
        		<p:dataTable var="det" id="idTableDetalleDocumento" value="#{presentacionBean.lstDetDocVenta}"  rowIndexVar="row" paginator="true" rows="10" size="small"
-			emptyMessage="No se encontraron detalles de documento de venta." style="width:100%" paginatorPosition="bottom" rowKey="#{det.id}"  selectionMode="single" >
+			emptyMessage="No se encontraron detalles de documento de venta." style="width:100%" paginatorPosition="bottom" rowKey="#{det.id}"  selectionMode="single" selection="#{presentacionBean.detalleDocVentaSelected}" >
 		
 				<p:column headerText="Documento" filterMatchMode="contains" style="text-align:center">
 					<h:outputText value="#{det.documentoVenta.serie}-#{det.documentoVenta.numero}"/>
@@ -209,9 +209,40 @@
 				</p:column>
 		
 			</p:dataTable>
+			
+<!-- 			<p:contextMenu id="menuTableDoc" for="idTableDetalleDocumento" > -->
+<!-- 	            <p:menuitem value="Cambiar Presentación" icon="pi pi-wallet" action="#{presentacionBean.iniciarCambioPresentacion}" oncomplete="PF('dialogCambioPresentacion').show()" update=":formCambioPresentacion" /> -->
+<!-- 	        </p:contextMenu> -->
 		</h:form>
         
     </p:dialog>
+    
+<!--     <p:dialog modal="true" dynamic="true" closeOnEscape="true" id="dialogCambioPresentacion" header="CAMBIAR PRESENTACIÓN" widgetVar="dialogCambioPresentacion" resizable="false" closable="true" -->
+<!--         appendTo="@(body)"> -->
+<!--         <h:form id="formCambioPresentacion">  -->
+  
+<!-- 	     	<h:panelGrid columns="2"> -->
+<!-- 	     		<p:outputLabel value=" Seleccionar Presentacion:" style="font-size: 20px; font-weight:bold"/> -->
+<!-- 	     		<p:autoComplete  scrollHeight="500" styleClass="ui-autocompV" value="#{presentacionBean.clienteSelected}" converter="#{documentoVentaBean.conversorCliente}" completeMethod="#{documentoVentaBean.completeCliente}"   -->
+<!-- 	                  var="cli" itemLabel="#{cli.dniRuc}" itemValue="#{cli}" forceSelection="true" style="margin:5px;" > -->
+<!-- 	            	<p:column width="400px"> -->
+<!-- 	                	<h:outputLabel value="#{cli.dniRuc}"/>  -->
+<!-- 	                </p:column> -->
+<!-- 	                <p:column width="400px"> -->
+<!-- 	                	<h:outputLabel value="#{cli.razonSocial}" />  -->
+<!-- 	                </p:column>  -->
+<!-- 	                <p:ajax event="change" listener="#{documentoVentaBean.onChangeCliente}" update=":form:tabView:pnl" />						                						               -->
+<!-- 	            </p:autoComplete> -->
+	     		
+	     		
+<!-- 	     		<p:commandButton value="GUARDAR" update=":formDetalleDocVenta" action="#{presentacionBean.confirmarStock}"/>  -->
+	     		
+<!-- 	     	</h:panelGrid> -->
+	      	
+       		
+<!-- 		</h:form> -->
+        
+<!--     </p:dialog> -->
     
     <p:dialog modal="true" dynamic="true" closeOnEscape="true" id="dialogUnidadMedida" header="UNIDAD DE MEDIDA" widgetVar="unidadMedidaDialog" resizable="false" closable="true"
         appendTo="@(body)" style="width:auto">

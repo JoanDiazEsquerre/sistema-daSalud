@@ -77,6 +77,9 @@ public class DocumentoVentaServiceImpl implements DocumentoVentaService{
 		
 		entity.setNumero(numeroActual); 
 		documentoVentaRepository.save(entity);
+		
+		BigDecimal sumaBaseImpDet = BigDecimal.ZERO;
+		
 		for(DetalleDocumentoVenta d:lstDetalleDocumentoVenta) {
 			d.setDocumentoVenta(entity);
 			d.setEstado(true);
@@ -90,8 +93,26 @@ public class DocumentoVentaServiceImpl implements DocumentoVentaService{
 			}
 			
 			presentacionRepository.save(presentacionBusqueda.get());
+			
+			sumaBaseImpDet  = sumaBaseImpDet.add(d.getImporteVentaSinIgv());
  				
 		}  
+		
+		if(entity.getSubTotal().compareTo(sumaBaseImpDet) !=0) {
+			BigDecimal diferencia = entity.getSubTotal().subtract(sumaBaseImpDet);
+			DetalleDocumentoVenta detModif = null;
+			
+			for(DetalleDocumentoVenta d:lstDetalleDocumentoVenta) {
+				if(d.getTipoOperacion().equals("GRAVADA")) {
+					detModif = d;
+				}
+			}
+			
+			if(detModif != null) {
+				detModif.setImporteVentaSinIgv(detModif.getImporteVentaSinIgv().add(diferencia));
+				detalleDocumentoVentaRepository.save(detModif);
+			}
+		}
 		
 		serie.setNumero(aumento+"");
 		serieDocumentoRepository.save(serie);
